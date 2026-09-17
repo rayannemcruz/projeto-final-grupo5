@@ -1,0 +1,2441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trillia RiskPack | Predição de Risco em Seguro de Frotas PJ</title>
+  <meta name="description" content="Plataforma interativa do Projeto Final de IA/Dados - Grupo 5: Solução de Machine Learning e Motor de Decisão 3-Way para Seguro de Frotas PJ.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #070b14;
+      --bg-surface: #0e1626;
+      --bg-card: #131d31;
+      --bg-card-hover: #19263f;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(56, 189, 248, 0.25);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-subtle: #64748b;
+      
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.2);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.2);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.2);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.2);
+      --purple: #8b5cf6;
+      --purple-glow: rgba(139, 92, 246, 0.2);
+      --blue: #3b82f6;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      color-scheme: dark;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.07) 0%, transparent 45%),
+        radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    code, pre, .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Badges & Chips */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .badge-cyan {
+      background: var(--cyan-glow);
+      color: var(--cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+    .badge-emerald {
+      background: var(--emerald-glow);
+      color: var(--emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .badge-amber {
+      background: var(--amber-glow);
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .badge-rose {
+      background: var(--rose-glow);
+      color: var(--rose);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+    .badge-purple {
+      background: var(--purple-glow);
+      color: var(--purple);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: var(--transition);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(6, 182, 212, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(6, 182, 212, 0.45);
+    }
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7, 11, 20, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .nav-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.2rem;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+    }
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+    }
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--cyan);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 24px;
+      align-items: center;
+    }
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+    nav a:hover {
+      color: var(--text-main);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 70px 0 50px 0;
+      position: relative;
+    }
+    .hero-content {
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero-pretitle {
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .hero-title {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-title span {
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-bottom: 30px;
+      max-width: 780px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-team {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin: 24px auto 36px;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .team-label {
+      font-size: 0.78rem;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    .team-members {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .team-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .team-chip::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--emerald);
+      border-radius: 50%;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* KPI Cards Grid */
+    .kpi-section {
+      padding: 30px 0 60px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 22px 20px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-accent);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+    .kpi-card.c-cyan::after { background: var(--cyan); }
+    .kpi-card.c-emerald::after { background: var(--emerald); }
+    .kpi-card.c-amber::after { background: var(--amber); }
+    .kpi-card.c-purple::after { background: var(--purple); }
+    .kpi-card.c-rose::after { background: var(--rose); }
+    .kpi-card.c-blue::after { background: var(--blue); }
+
+    .kpi-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .kpi-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    .kpi-subtext {
+      font-size: 0.78rem;
+      color: var(--text-subtle);
+    }
+
+    /* Section Styling */
+    section {
+      padding: 60px 0;
+      border-top: 1px solid var(--border-color);
+    }
+    .section-header {
+      margin-bottom: 40px;
+      text-align: center;
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .section-tag {
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+    .section-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Architecture Flow Visualizer */
+    .flow-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 36px;
+      margin-bottom: 30px;
+    }
+    .flow-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      position: relative;
+    }
+    .step-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      position: relative;
+      transition: var(--transition);
+    }
+    .step-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+    }
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--cyan-glow);
+      color: var(--cyan);
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+    .step-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    .step-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* CRISP-DM Tasks Grid */
+    .tasks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .task-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+    .task-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-3px);
+    }
+    .task-badge-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .task-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+    .task-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      flex-grow: 1;
+    }
+    .task-deliverable {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      border-left: 3px solid var(--cyan);
+    }
+
+    /* Tables & Responsive Wrap */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.86rem;
+    }
+    th {
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Decile Chart Bars */
+    .chart-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    .bar-label {
+      width: 60px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .bar-track {
+      flex-grow: 1;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #ffffff;
+      transition: width 1s ease-in-out;
+    }
+    .bar-stat {
+      width: 75px;
+      text-align: right;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    /* Interactive Simulator */
+    .sim-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    .sim-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 32px;
+    }
+    @media (max-width: 900px) {
+      .sim-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .presets-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .preset-btn:hover {
+      background: var(--cyan-glow);
+      color: var(--cyan);
+      border-color: var(--cyan);
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 6px;
+    }
+    .form-value-tag {
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--cyan);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--cyan);
+    }
+    select, input[type="number"] {
+      width: 100%;
+      background: #090f1d;
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+    }
+    select:focus, input:focus {
+      border-color: var(--cyan);
+    }
+
+    /* Simulator Result Panel */
+    .sim-result {
+      background: #090f1d;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .result-status-box {
+      text-align: center;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      margin-bottom: 20px;
+      transition: var(--transition);
+    }
+    .res-approved {
+      background: var(--emerald-glow);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .res-approved .status-title { color: var(--emerald); }
+    .res-condition {
+      background: var(--amber-glow);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .res-condition .status-title { color: var(--amber); }
+    .res-rejected {
+      background: var(--rose-glow);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+    }
+    .res-rejected .status-title { color: var(--rose); }
+
+    .status-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      margin-bottom: 4px;
+    }
+    .status-rule {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .sim-finances {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .fin-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+    }
+    .fin-label {
+      font-size: 0.72rem;
+      color: var(--text-subtle);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .fin-val {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-top: 2px;
+    }
+
+    /* XML Viewer */
+    .xml-box {
+      background: #060a12;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .xml-header {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .xml-content {
+      padding: 18px;
+      max-height: 420px;
+      overflow-y: auto;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+
+    /* Data Explorer Controls */
+    .explorer-controls {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      flex-grow: 1;
+      min-width: 240px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: #ffffff;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+    }
+
+    /* FAQ Accordion */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .faq-item:hover {
+      border-color: var(--border-accent);
+    }
+    .faq-question {
+      padding: 18px 22px;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    .faq-icon {
+      font-size: 1.2rem;
+      color: var(--cyan);
+      transition: transform 0.3s ease;
+    }
+    .faq-item.active .faq-icon {
+      transform: rotate(45deg);
+    }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease, padding 0.35s ease;
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.65;
+    }
+    .faq-item.active .faq-answer {
+      max-height: 400px;
+      padding: 16px 22px 22px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* Project Files Section */
+    .files-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .file-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      transition: var(--transition);
+    }
+    .file-card:hover {
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+    }
+    .file-icon {
+      font-size: 1.8rem;
+    }
+    .file-info {
+      flex-grow: 1;
+    }
+    .file-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    .file-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--cyan);
+      margin-bottom: 6px;
+    }
+    .file-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    footer {
+      background: #04070d;
+      border-top: 1px solid var(--border-color);
+      padding: 40px 0;
+      text-align: center;
+      color: var(--text-subtle);
+      font-size: 0.86rem;
+    }
+    .footer-team {
+      margin-bottom: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav ul {
+        display: none;
+      }
+      .hero-title {
+        font-size: 2rem;
+      }
+      .kpi-value {
+        font-size: 1.5rem;
+      }
+      .flow-card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="container nav-wrapper">
+      <a href="#" class="brand">
+        <div class="brand-icon">5</div>
+        <div class="brand-text">
+          <span class="brand-title">Trillia RiskPack</span>
+          <span class="brand-sub">Grupo 5 • Frotas PJ</span>
+        </div>
+      </a>
+      <nav>
+        <ul>
+          <li><a href="#visao-geral">Visão Geral</a></li>
+          <li><a href="#metodologia">Metodologia & ML</a></li>
+          <li><a href="#motor-politica">Motor 3-Way</a></li>
+          <li><a href="#resultados-decis">Resultados & Decis</a></li>
+          <li><a href="#simulador">Simulador</a></li>
+          <li><a href="#base-auditada">Base Auditada</a></li>
+          <li><a href="#arquivos">Arquivos</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#simulador" class="btn btn-primary btn-sm">Testar Proposta</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero" id="visao-geral">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-pretitle">
+          <span class="badge badge-cyan">Projeto Final de Pós-Graduação IA/Dados</span>
+          <span class="badge badge-purple">Ecossistema CESAR / Neurotech / B3</span>
+          <span class="badge badge-emerald">Validação OOT 0.92 AUC</span>
+        </div>
+        <h1 class="hero-title">
+          Predição de Risco & Subscrição em <span>Seguro de Frotas PJ</span>
+        </h1>
+        <p class="hero-desc">
+          Solução ponta a ponta combinando <strong>Machine Learning (Random Forest OOT)</strong> e <strong>Motor de Decisão 3-Way (Trillia RiskPack)</strong> para antecipar sinistros de casco, evitar perdas milionárias e viabilizar resgates comerciais de frotas no momento pré-emissão.
+        </p>
+
+        <!-- Integrantes Grupo 5 -->
+        <div class="hero-team">
+          <span class="team-label">👥 Integrantes do Grupo 5</span>
+          <div class="team-members">
+            <span class="team-chip">Breno</span>
+            <span class="team-chip">Danyllo</span>
+            <span class="team-chip">Ernesto</span>
+            <span class="team-chip">Juliana</span>
+            <span class="team-chip">Karine</span>
+            <span class="team-chip">Rayanne</span>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <a href="#simulador" class="btn btn-primary">
+            ⚡ Abrir Simulador do Motor
+          </a>
+          <a href="#resultados-decis" class="btn btn-outline">
+            📊 Ver Resultados por Decil
+          </a>
+          <a href="#faq" class="btn btn-outline">
+            ❓ FAQ & Respostas da Banca
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI STRIP -->
+  <section class="kpi-section" style="border-top: none; padding-top: 0;">
+    <div class="container">
+      <div class="kpi-grid">
+        <div class="kpi-card c-cyan">
+          <div class="kpi-label">Poder Preditivo (OOT) <span class="badge badge-cyan">ML</span></div>
+          <div class="kpi-value">0.9202</div>
+          <div class="kpi-subtext">AUC-ROC em teste cego temporal</div>
+        </div>
+        <div class="kpi-card c-rose">
+          <div class="kpi-label">Concentração de Risco <span class="badge badge-rose">Top 3</span></div>
+          <div class="kpi-value">82.15%</div>
+          <div class="kpi-subtext">Dos sinistros nos decis 1 a 3 (44.9% no D1)</div>
+        </div>
+        <div class="kpi-card c-emerald">
+          <div class="kpi-label">Perdas Evitadas <span class="badge badge-emerald">Economia</span></div>
+          <div class="kpi-value">R$ 5,13M</div>
+          <div class="kpi-subtext">114 frotas com sinistro real barradas</div>
+        </div>
+        <div class="kpi-card c-amber">
+          <div class="kpi-label">Receita Extra (D1-D3) <span class="badge badge-amber">Agravamento</span></div>
+          <div class="kpi-value">R$ 759,7K</div>
+          <div class="kpi-subtext">Sobretaxa em 876 frotas resgatadas</div>
+        </div>
+        <div class="kpi-card c-blue">
+          <div class="kpi-label">Faturamento Emitido <span class="badge badge-cyan">Prêmio</span></div>
+          <div class="kpi-value">R$ 35,2M</div>
+          <div class="kpi-subtext">Volume em 3.445 propostas aprovadas</div>
+        </div>
+        <div class="kpi-card c-purple">
+          <div class="kpi-label">Aprovação Fast-Track <span class="badge badge-purple">Automação</span></div>
+          <div class="kpi-value">65.34%</div>
+          <div class="kpi-subtext">2.569 apólices sem atrito comercial</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARQUITETURA DO PROJETO & FLUXO -->
+  <section id="metodologia">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-cyan section-tag">Arquitetura Integrada</span>
+        <h2 class="section-title">Como a Solução Opera de Ponta a Ponta</h2>
+        <p class="section-subtitle">
+          A união entre o poder discriminante do Aprendizado de Máquina e a governança determinística do Motor de Decisão XML.
+        </p>
+      </div>
+
+      <div class="flow-card">
+        <div class="flow-steps">
+          <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-title">Bureau de Mercado</div>
+            <div class="step-desc">
+              Base enriquecida com <strong>3.932 apólices</strong> e <strong>102 variáveis</strong> cadastrais, judiciais, georreferenciadas e de liderança societária.
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-title">Filtro Tríplice</div>
+            <div class="step-desc">
+              Redução matemática de 102 para <strong>14 variáveis estáveis</strong>: Missing &lt;50%, Informação Mútua (MI) e teste KS contra Data Drift temporal.
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-title">Random Forest (OOT)</div>
+            <div class="step-desc">
+              Treino até Jun/2023 e validação cega Jul/2023-Fev/2024. Gera a probabilidade e o <strong>Decil de Risco (1 a 10)</strong> com AUC 0.92.
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-number">4</div>
+            <div class="step-title">Motor Trillia XML</div>
+            <div class="step-desc">
+              Aplica a política declarativa <code>politica_credito_frotas.xml</code> avaliando Knockouts, Decis, Condições de Resgate e Fast-Track.
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-number">5</div>
+            <div class="step-title">Decisão 3-Way & P&L</div>
+            <div class="step-desc">
+              Emissão de resultado: Aprovado, Aceito com Condição (+GPS / +15%) ou Recusado, com justificativa audível e impacto financeiro.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAREFAS CRISP-DM -->
+      <h3 style="font-size: 1.3rem; margin-bottom: 20px; color: #ffffff;">📋 Pipeline de Execução (Metodologia CRISP-DM no Colab)</h3>
+      <div class="tasks-grid">
+        <div class="task-card">
+          <div class="task-badge-row">
+            <span class="badge badge-cyan">Tarefa 1</span>
+            <span class="mono" style="font-size: 0.75rem; color: var(--cyan);">Setup & Carga</span>
+          </div>
+          <h4 class="task-title">Ambiente & Ingestão TSV</h4>
+          <p class="task-desc">
+            Configuração do ecossistema Google Colab, importação dos pacotes (pandas, scikit-learn, seaborn) e carregamento da base bruta do Bureau Trillia.
+          </p>
+          <div class="task-deliverable"><strong>Entregável:</strong> DataFrame com 3.932 linhas e 102 colunas.</div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-badge-row">
+            <span class="badge badge-amber">Tarefa 2 & 2.1</span>
+            <span class="mono" style="font-size: 0.75rem; color: var(--amber);">EDA & Setorial</span>
+          </div>
+          <h4 class="task-title">Análise Exploratória & CNAE</h4>
+          <p class="task-desc">
+            Diagnóstico de 9,69% de sinistro de casco na carteira. Identificação de alta sinistralidade nos setores S (18,0%) e Q (17,1%), e baixo risco no setor M (4,7%).
+          </p>
+          <div class="task-deliverable"><strong>Entregável:</strong> Diagnóstico de lag temporal de sinistros em 2024.</div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-badge-row">
+            <span class="badge badge-purple">Tarefa 3</span>
+            <span class="mono" style="font-size: 0.75rem; color: var(--purple);">Modelagem ML</span>
+          </div>
+          <h4 class="task-title">Truncamento, Filtro & RF</h4>
+          <p class="task-desc">
+            Descarte dos 190 registros imaturos de 2024. Execução do Filtro Tríplice (14 variáveis selecionadas) e treinamento de Random Forest (AUC = 0.9202).
+          </p>
+          <div class="task-deliverable"><strong>Entregável:</strong> Segmentação calibrada em Decis de 1 a 10.</div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-badge-row">
+            <span class="badge badge-emerald">Tarefa 4</span>
+            <span class="mono" style="font-size: 0.75rem; color: var(--emerald);">Política XML</span>
+          </div>
+          <h4 class="task-title">Especificação Trillia RiskPack</h4>
+          <p class="task-desc">
+            Construção declarativa do XML no padrão <code>DecisionRunnerNotation</code> com Inputs, Parameters, Flows e Rules determinísticas auditáveis.
+          </p>
+          <div class="task-deliverable"><strong>Entregável:</strong> <code>politica_credito_frotas.xml</code></div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-badge-row">
+            <span class="badge badge-cyan">Tarefa 5</span>
+            <span class="mono" style="font-size: 0.75rem; color: var(--cyan);">Motor de Decisão</span>
+          </div>
+          <h4 class="task-title">Engine TrilliaXMLPolicyEngine</h4>
+          <p class="task-desc">
+            Desenvolvimento da classe Python que faz o parsing da árvore XML, avalia condições com operadores lógicos (AND, EQ, GT, IN, LTE) e calcula prêmios.
+          </p>
+          <div class="task-deliverable"><strong>Entregável:</strong> Motor testado individualmente por proposta.</div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-badge-row">
+            <span class="badge badge-rose">Tarefa 6</span>
+            <span class="mono" style="font-size: 0.75rem; color: var(--rose);">Simulação & Auditoria</span>
+          </div>
+          <h4 class="task-title">Execução em Lote da Carteira</h4>
+          <p class="task-desc">
+            Processamento de 100% das 3.932 apólices da base. Geração da base de insights com regras disparadas, prêmios faturados e perdas evitadas.
+          </p>
+          <div class="task-deliverable"><strong>Entregável:</strong> <code>resultado_motor_decisao_frotas.csv</code></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENGENHARIA DE DADOS & FILTRO TRIPLICE -->
+  <section style="background: rgba(0, 0, 0, 0.2);">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-purple section-tag">Engenharia de Dados Robusta</span>
+        <h2 class="section-title">O Filtro Tríplice de Seleção de Variáveis</h2>
+        <p class="section-subtitle">
+          Como reduzimos 102 variáveis para as 14 variáveis mais discriminantes e imunes a data drift temporal entre safras.
+        </p>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Variável Selecionada</th>
+              <th>Origem</th>
+              <th>Missing Rate %</th>
+              <th>Mutual Info (MI)</th>
+              <th>KS Data Drift</th>
+              <th>Diagnóstico de Estabilidade</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>RAZAO_SITUACAO_MERCADO_ESTADUAL_5_ANOS</code></td>
+              <td>Mercadológica</td>
+              <td>3.97%</td>
+              <td><strong>0.0101</strong></td>
+              <td>0.173</td>
+              <td><span class="badge badge-emerald">Alta Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>QTD_COLABORADORES</code></td>
+              <td>Porte / Empresa</td>
+              <td>0.92%</td>
+              <td><strong>0.0056</strong></td>
+              <td>0.036</td>
+              <td><span class="badge badge-emerald">Altíssima Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>QTD_FECHAMENTOS_GEORREFERENCIADO_5_ANOS</code></td>
+              <td>Geomarketing</td>
+              <td>1.32%</td>
+              <td><strong>0.0054</strong></td>
+              <td>0.026</td>
+              <td><span class="badge badge-emerald">Altíssima Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>CONCENTRACAO_SOCIETARIA</code></td>
+              <td>Societária</td>
+              <td>5.14%</td>
+              <td><strong>0.0050</strong></td>
+              <td>0.024</td>
+              <td><span class="badge badge-emerald">Altíssima Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>QTD_ABERTURAS_ESTADUAL_5_ANOS</code></td>
+              <td>Mercadológica</td>
+              <td>3.97%</td>
+              <td><strong>0.0047</strong></td>
+              <td>0.055</td>
+              <td><span class="badge badge-emerald">Alta Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>RAZAO_SITUACAO_MERCADO_NACIONAL_5_ANOS</code></td>
+              <td>Mercadológica</td>
+              <td>0.92%</td>
+              <td><strong>0.0033</strong></td>
+              <td>0.185</td>
+              <td><span class="badge badge-emerald">Alta Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>QTD_FECHAMENTOS_NACIONAL_5_ANOS</code></td>
+              <td>Mercadológica</td>
+              <td>0.92%</td>
+              <td><strong>0.0032</strong></td>
+              <td>0.065</td>
+              <td><span class="badge badge-emerald">Alta Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>TAXA_SOBREVIVENCIA_MERCADO_10_ANOS</code></td>
+              <td>Mercadológica</td>
+              <td>4.09%</td>
+              <td><strong>0.0031</strong></td>
+              <td>0.192</td>
+              <td><span class="badge badge-emerald">Alta Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>QTD_RECLAMACOES_NAO_ATENDIDAS_TOTAL</code></td>
+              <td>Bureau / Ouvidoria</td>
+              <td>0.92%</td>
+              <td><strong>0.0031</strong></td>
+              <td>0.024</td>
+              <td><span class="badge badge-emerald">Altíssima Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>COMPETICAO_MERCADO_ESTADUAL</code></td>
+              <td>Mercadológica</td>
+              <td>3.97%</td>
+              <td><strong>0.0028</strong></td>
+              <td>0.055</td>
+              <td><span class="badge badge-emerald">Alta Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>RAZAO_SITUACAO_MERCADO_GEORREFERENCIADO_5_ANOS</code></td>
+              <td>Geomarketing</td>
+              <td>1.32%</td>
+              <td><strong>0.0022</strong></td>
+              <td>0.133</td>
+              <td><span class="badge badge-emerald">Alta Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>TAXA_SOBREVIVENCIA_MERCADO_5_ANOS</code></td>
+              <td>Mercadológica</td>
+              <td>4.22%</td>
+              <td><strong>0.0018</strong></td>
+              <td>0.205</td>
+              <td><span class="badge badge-amber">Monitorar Drift</span></td>
+            </tr>
+            <tr>
+              <td><code>QTD_RECLAMACOES_TOTAL</code></td>
+              <td>Bureau / Reclamações</td>
+              <td>0.92%</td>
+              <td><strong>0.0015</strong></td>
+              <td>0.026</td>
+              <td><span class="badge badge-emerald">Altíssima Estabilidade</span></td>
+            </tr>
+            <tr>
+              <td><code>QTD_ABERTURAS_GEORREFERENCIADO_5_ANOS</code></td>
+              <td>Geomarketing</td>
+              <td>1.32%</td>
+              <td><strong>0.0009</strong></td>
+              <td>0.039</td>
+              <td><span class="badge badge-emerald">Altíssima Estabilidade</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Split OOT Explicação -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div class="kpi-card" style="border-left: 3px solid var(--amber);">
+          <div class="kpi-label">Amostra de Treino (Histórico)</div>
+          <div class="kpi-value" style="font-size: 1.4rem;">3.162 Apólices</div>
+          <div class="kpi-subtext">Período: <strong>Mai/2020 a Jun/2023</strong> | 337 sinistros (10,66%)</div>
+        </div>
+        <div class="kpi-card" style="border-left: 3px solid var(--cyan);">
+          <div class="kpi-label">Amostra de Teste Cego OOT</div>
+          <div class="kpi-value" style="font-size: 1.4rem;">580 Apólices</div>
+          <div class="kpi-subtext">Período: <strong>Jul/2023 a Fev/2024</strong> | 40 sinistros (6,90%)</div>
+        </div>
+        <div class="kpi-card" style="border-left: 3px solid var(--rose);">
+          <div class="kpi-label">Truncamento de Maturação (Descarte)</div>
+          <div class="kpi-value" style="font-size: 1.4rem;">190 Apólices</div>
+          <div class="kpi-subtext">Período: <strong>Mar/2024 a Mai/2024</strong> (Lag de regulação / IBNR)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- O MOTOR DE DECISÃO 3-WAY & REGRAS XML -->
+  <section id="motor-politica">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-cyan section-tag">Governança Declarativa</span>
+        <h2 class="section-title">O Motor de Decisão Trillia RiskPack</h2>
+        <p class="section-subtitle">
+          Regras de Knockout sumário e estratégias de Resgate Comercial mapeadas na especificação XML.
+        </p>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID da Regra</th>
+              <th>Decisão 3-Way</th>
+              <th>Prioridade</th>
+              <th>Condições Disparadoras</th>
+              <th>Reason Code</th>
+              <th>Ações Operacionais / Financeiras</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>RGR_K01_RISCO_LIDERANCA_AREA_CRITICA</code></td>
+              <td><span class="badge badge-rose">RECUSADO</span></td>
+              <td>1</td>
+              <td><code>RISCO_LIDERANCA == 1 AND CONCENTRACAO == 'ALTISSIMA'</code></td>
+              <td><code>K01_LIDERANCA_AREA_CRITICA</code></td>
+              <td>Recusa sumária preventiva. Perda evitada de sinistro.</td>
+            </tr>
+            <tr>
+              <td><code>RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS</code></td>
+              <td><span class="badge badge-rose">RECUSADO</span></td>
+              <td>2</td>
+              <td><code>PROCESSOS_JUDICIAIS_REQUERIDO &gt; 100</code></td>
+              <td><code>K02_JUDICIAL_EXTREMO</code></td>
+              <td>Recusa sumária por passivo jurídico descontrolado.</td>
+            </tr>
+            <tr>
+              <td><code>RGR_R01_DECIL1_RESGATE_COM_RASTREADOR</code></td>
+              <td><span class="badge badge-amber">ACEITO COM CONDIÇÃO</span></td>
+              <td>10</td>
+              <td><code>DECIL == 1 AND PROCESSOS &lt;= 10 AND AREA IN ('BAIXISSIMA', 'BAIXA', 'MEDIA')</code></td>
+              <td><code>RECUPERACAO_COMERCIAL_D1</code></td>
+              <td><strong>+15% Agravamento</strong> no Prêmio + <strong>Rastreador GPS Obrigatório</strong>.</td>
+            </tr>
+            <tr>
+              <td><code>RGR_R02_DECIL1_RECUSA_PADRAO</code></td>
+              <td><span class="badge badge-rose">RECUSADO</span></td>
+              <td>11</td>
+              <td><code>DECIL == 1</code> (sem critérios de mitigação)</td>
+              <td><code>DECIL1_ALTO_RISCO_SEM_MITIGACAO</code></td>
+              <td>Recusa de alto risco atuarial sem salvaguardas.</td>
+            </tr>
+            <tr>
+              <td><code>RGR_R03_DECIL2_3_CONDICIONAL</code></td>
+              <td><span class="badge badge-amber">ACEITO COM CONDIÇÃO</span></td>
+              <td>20</td>
+              <td><code>DECIL IN (2, 3)</code></td>
+              <td><code>ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO</code></td>
+              <td><strong>+7.5% Agravamento</strong> Tarifário. Sem exigência de GPS.</td>
+            </tr>
+            <tr>
+              <td><code>RGR_R04_DECIL4_10_APROVADO</code></td>
+              <td><span class="badge badge-emerald">APROVADO</span></td>
+              <td>30</td>
+              <td><code>DECIL &gt;= 4</code></td>
+              <td><code>APROVADO_AUTOMATICO_BAIXO_RISCO</code></td>
+              <td><strong>Fast-Track</strong>: 100% tarifa padrão, sem restrições.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- XML Viewer Modal/Box -->
+      <div class="xml-box">
+        <div class="xml-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="badge badge-cyan">XML Declarativo</span>
+            <span class="mono" style="font-size: 0.8rem; color: #cbd5e1;">docs/politica_credito_frotas.xml</span>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="copyXML()">
+            📋 Copiar XML da Política
+          </button>
+        </div>
+        <pre class="xml-content" id="xmlText">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;DecisionRunnerNotation name=&quot;POLITICA_SUBSCRICAO_FROTAS_PJ&quot; version=&quot;1.0&quot;&gt;
+    &lt;Metadata&gt;
+        &lt;Description&gt;Politica de Subscricao e Credito Frotas PJ - Ecossistema Trillia RiskPack&lt;/Description&gt;
+        &lt;Author&gt;Analista de Operacoes e Data Science&lt;/Author&gt;
+        &lt;Target&gt;PROP_ALVO_CASCO&lt;/Target&gt;
+    &lt;/Metadata&gt;
+
+    &lt;!-- INPUTS (Entradas da Proposta / Bureau com prefixo PROP_) --&gt;
+    &lt;Inputs&gt;
+        &lt;Input name=&quot;PROP_CNPJ&quot; type=&quot;String&quot; description=&quot;CNPJ da Empresa Proponente&quot; /&gt;
+        &lt;Input name=&quot;PROP_CONCENTRACAO_AREA_RISCO&quot; type=&quot;String&quot; description=&quot;Nivel de Concentracao Geografica de Risco&quot; /&gt;
+        &lt;Input name=&quot;PROP_QTD_PROCESSOS_JUDICIAIS_REQUERIDO&quot; type=&quot;Numeric&quot; description=&quot;Quantidade de processos judiciais como requerido&quot; /&gt;
+        &lt;Input name=&quot;PROP_RISCO_LIDERANCA&quot; type=&quot;Numeric&quot; description=&quot;Indicador de Risco Societario/Lideranca (0 ou 1)&quot; /&gt;
+        &lt;Input name=&quot;PROP_PORTE_FATURAMENTO&quot; type=&quot;String&quot; description=&quot;Porte presumido do faturamento&quot; /&gt;
+        &lt;Input name=&quot;PROP_SECAO_CNAE&quot; type=&quot;String&quot; description=&quot;Setor de atividade economica&quot; /&gt;
+        &lt;Input name=&quot;PROP_ALVO_CASCO&quot; type=&quot;Numeric&quot; description=&quot;Ground truth de sinistro real&quot; /&gt;
+    &lt;/Inputs&gt;
+
+    &lt;!-- PARAMETERS (Parametros de execucao com prefixo VI_) --&gt;
+    &lt;Parameters&gt;
+        &lt;Parameter name=&quot;VI_TICKET_MEDIO_PREMIO&quot; type=&quot;Numeric&quot; value=&quot;10000.0&quot; /&gt;
+        &lt;Parameter name=&quot;VI_LIMITE_PROCESSOS_EXTREMO&quot; type=&quot;Numeric&quot; value=&quot;100.0&quot; /&gt;
+        &lt;Parameter name=&quot;VI_LIMITE_PROCESSOS_RESGATE&quot; type=&quot;Numeric&quot; value=&quot;10.0&quot; /&gt;
+        &lt;Parameter name=&quot;VI_AGRAVAMENTO_D1_PCT&quot; type=&quot;Numeric&quot; value=&quot;15.0&quot; /&gt;
+        &lt;Parameter name=&quot;VI_AGRAVAMENTO_D2_3_PCT&quot; type=&quot;Numeric&quot; value=&quot;7.5&quot; /&gt;
+    &lt;/Parameters&gt;
+
+    &lt;!-- DROBJECTS: FLX (Fluxos), RGR (Regras), CALC (Calculos/Outputs) --&gt;
+    &lt;DRObjects&gt;
+        &lt;Flows&gt;
+            &lt;Flow id=&quot;FLX_PRINCIPAL&quot; name=&quot;Fluxo Principal de Subscricao Frotas&quot;&gt;
+                &lt;SubFlow ref=&quot;FLX_KNOCKOUTS&quot; priority=&quot;1&quot; /&gt;
+                &lt;SubFlow ref=&quot;FLX_ROTEAMENTO_SCORE&quot; priority=&quot;2&quot; /&gt;
+            &lt;/Flow&gt;
+        &lt;/Flows&gt;
+
+        &lt;Rules&gt;
+            &lt;!-- REGRAS DE KNOCKOUT (RECUSA SUMÁRIA) --&gt;
+            &lt;Rule id=&quot;RGR_K01_RISCO_LIDERANCA_AREA_CRITICA&quot; decision=&quot;RECUSADO&quot; priority=&quot;1&quot;&gt;
+                &lt;Conditions combine=&quot;AND&quot;&gt;
+                    &lt;Condition field=&quot;PROP_RISCO_LIDERANCA&quot; operator=&quot;EQ&quot; value=&quot;1.0&quot; /&gt;
+                    &lt;Condition field=&quot;PROP_CONCENTRACAO_AREA_RISCO&quot; operator=&quot;EQ&quot; value=&quot;ALTISSIMA&quot; /&gt;
+                &lt;/Conditions&gt;
+                &lt;Outcome&gt;
+                    &lt;ReasonCode&gt;K01_LIDERANCA_AREA_CRITICA&lt;/ReasonCode&gt;
+                    &lt;Description&gt;Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.&lt;/Description&gt;
+                    &lt;Action type=&quot;CALC_AGRAVAMENTO_PREMIO_PCT&quot; value=&quot;0.0&quot; /&gt;
+                    &lt;Action type=&quot;CALC_EXIGE_RASTREADOR_GPS&quot; value=&quot;FALSE&quot; /&gt;
+                &lt;/Outcome&gt;
+            &lt;/Rule&gt;
+
+            &lt;Rule id=&quot;RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS&quot; decision=&quot;RECUSADO&quot; priority=&quot;2&quot;&gt;
+                &lt;Conditions combine=&quot;AND&quot;&gt;
+                    &lt;Condition field=&quot;PROP_QTD_PROCESSOS_JUDICIAIS_REQUERIDO&quot; operator=&quot;GT&quot; value=&quot;100.0&quot; /&gt;
+                &lt;/Conditions&gt;
+                &lt;Outcome&gt;
+                    &lt;ReasonCode&gt;K02_JUDICIAL_EXTREMO&lt;/ReasonCode&gt;
+                    &lt;Description&gt;Recusa Sumaria: Elevado passivo judicial (&gt; 100 processos como requerido).&lt;/Description&gt;
+                    &lt;Action type=&quot;CALC_AGRAVAMENTO_PREMIO_PCT&quot; value=&quot;0.0&quot; /&gt;
+                    &lt;Action type=&quot;CALC_EXIGE_RASTREADOR_GPS&quot; value=&quot;FALSE&quot; /&gt;
+                &lt;/Outcome&gt;
+            &lt;/Rule&gt;
+
+            &lt;!-- REGRAS DE ROTEAMENTO HÍBRIDO 3-WAY POR DECIL DE RISCO --&gt;
+            &lt;Rule id=&quot;RGR_R01_DECIL1_RESGATE_COM_RASTREADOR&quot; decision=&quot;ACEITO_COM_CONDICAO&quot; priority=&quot;10&quot;&gt;
+                &lt;Conditions combine=&quot;AND&quot;&gt;
+                    &lt;Condition field=&quot;CALC_DECIL_SCORE&quot; operator=&quot;EQ&quot; value=&quot;1&quot; /&gt;
+                    &lt;Condition field=&quot;PROP_QTD_PROCESSOS_JUDICIAIS_REQUERIDO&quot; operator=&quot;LTE&quot; value=&quot;10.0&quot; /&gt;
+                    &lt;Condition field=&quot;PROP_CONCENTRACAO_AREA_RISCO&quot; operator=&quot;IN&quot; value=&quot;BAIXISSIMA,BAIXA,MEDIA&quot; /&gt;
+                &lt;/Conditions&gt;
+                &lt;Outcome&gt;
+                    &lt;ReasonCode&gt;RECUPERACAO_COMERCIAL_D1&lt;/ReasonCode&gt;
+                    &lt;Description&gt;Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.&lt;/Description&gt;
+                    &lt;Action type=&quot;CALC_AGRAVAMENTO_PREMIO_PCT&quot; value=&quot;15.0&quot; /&gt;
+                    &lt;Action type=&quot;CALC_EXIGE_RASTREADOR_GPS&quot; value=&quot;TRUE&quot; /&gt;
+                &lt;/Outcome&gt;
+            &lt;/Rule&gt;
+
+            &lt;Rule id=&quot;RGR_R02_DECIL1_RECUSA_PADRAO&quot; decision=&quot;RECUSADO&quot; priority=&quot;11&quot;&gt;
+                &lt;Conditions combine=&quot;AND&quot;&gt;
+                    &lt;Condition field=&quot;CALC_DECIL_SCORE&quot; operator=&quot;EQ&quot; value=&quot;1&quot; /&gt;
+                &lt;/Conditions&gt;
+                &lt;Outcome&gt;
+                    &lt;ReasonCode&gt;DECIL1_ALTO_RISCO_SEM_MITIGACAO&lt;/ReasonCode&gt;
+                    &lt;Description&gt;Recusa por Decil 1 de Risco sem criterios para resgate comercial.&lt;/Description&gt;
+                    &lt;Action type=&quot;CALC_AGRAVAMENTO_PREMIO_PCT&quot; value=&quot;0.0&quot; /&gt;
+                    &lt;Action type=&quot;CALC_EXIGE_RASTREADOR_GPS&quot; value=&quot;FALSE&quot; /&gt;
+                &lt;/Outcome&gt;
+            &lt;/Rule&gt;
+
+            &lt;Rule id=&quot;RGR_R03_DECIL2_3_CONDICIONAL&quot; decision=&quot;ACEITO_COM_CONDICAO&quot; priority=&quot;20&quot;&gt;
+                &lt;Conditions combine=&quot;AND&quot;&gt;
+                    &lt;Condition field=&quot;CALC_DECIL_SCORE&quot; operator=&quot;IN&quot; value=&quot;2,3&quot; /&gt;
+                &lt;/Conditions&gt;
+                &lt;Outcome&gt;
+                    &lt;ReasonCode&gt;ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO&lt;/ReasonCode&gt;
+                    &lt;Description&gt;Aceite Condicional Decil Intermediario (+7.5% premio).&lt;/Description&gt;
+                    &lt;Action type=&quot;CALC_AGRAVAMENTO_PREMIO_PCT&quot; value=&quot;7.5&quot; /&gt;
+                    &lt;Action type=&quot;CALC_EXIGE_RASTREADOR_GPS&quot; value=&quot;FALSE&quot; /&gt;
+                &lt;/Outcome&gt;
+            &lt;/Rule&gt;
+
+            &lt;Rule id=&quot;RGR_R04_DECIL4_10_APROVADO&quot; decision=&quot;APROVADO&quot; priority=&quot;30&quot;&gt;
+                &lt;Conditions combine=&quot;AND&quot;&gt;
+                    &lt;Condition field=&quot;CALC_DECIL_SCORE&quot; operator=&quot;GTE&quot; value=&quot;4&quot; /&gt;
+                &lt;/Conditions&gt;
+                &lt;Outcome&gt;
+                    &lt;ReasonCode&gt;APROVADO_AUTOMATICO_BAIXO_RISCO&lt;/ReasonCode&gt;
+                    &lt;Description&gt;Aprovacao Automatica: Risco dentro do apetite da seguradora.&lt;/Description&gt;
+                    &lt;Action type=&quot;CALC_AGRAVAMENTO_PREMIO_PCT&quot; value=&quot;0.0&quot; /&gt;
+                    &lt;Action type=&quot;CALC_EXIGE_RASTREADOR_GPS&quot; value=&quot;FALSE&quot; /&gt;
+                &lt;/Outcome&gt;
+            &lt;/Rule&gt;
+        &lt;/Rules&gt;
+
+        &lt;Calculations&gt;
+            &lt;Calculation name=&quot;CALC_PROB_SINISTRO&quot; type=&quot;Numeric&quot; description=&quot;Probabilidade de sinistro gerada pelo modelo ML&quot; /&gt;
+            &lt;Calculation name=&quot;CALC_DECIL_SCORE&quot; type=&quot;Integer&quot; description=&quot;Decil de risco de 1 a 10&quot; /&gt;
+            &lt;Calculation name=&quot;CALC_DECISAO_FINAL&quot; type=&quot;String&quot; description=&quot;Decisao final da proposta&quot; /&gt;
+            &lt;Calculation name=&quot;CALC_AGRAVAMENTO_PREMIO_PCT&quot; type=&quot;Numeric&quot; description=&quot;Porcentagem de sobretaxa aplicada&quot; /&gt;
+            &lt;Calculation name=&quot;CALC_EXIGE_RASTREADOR_GPS&quot; type=&quot;Boolean&quot; description=&quot;Indicador se rastreador GPS e obrigatorio&quot; /&gt;
+            &lt;Calculation name=&quot;CALC_PREMIO_FINAL_FATURADO&quot; type=&quot;Numeric&quot; description=&quot;Valor final do premio faturado em BRL&quot; /&gt;
+            &lt;Calculation name=&quot;CALC_RECEITA_ADICIONAL&quot; type=&quot;Numeric&quot; description=&quot;Receita extra decorrente do agravamento em BRL&quot; /&gt;
+            &lt;Calculation name=&quot;CALC_PERDA_EVITADA&quot; type=&quot;Numeric&quot; description=&quot;Sinistro evitado atraves da recusa sumaria em BRL&quot; /&gt;
+        &lt;/Calculations&gt;
+    &lt;/DRObjects&gt;
+&lt;/DecisionRunnerNotation&gt;</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTADOS POR DECIL & IMPACTO FINANCEIRO -->
+  <section id="resultados-decis">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-emerald section-tag">Auditoria & P&L</span>
+        <h2 class="section-title">Desempenho por Decil & Impacto Financeiro</h2>
+        <p class="section-subtitle">
+          Resultados reais consolidados na carteira de 3.932 apólices processadas pelo simulador Trillia.
+        </p>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Decil de Risco</th>
+              <th>Total Apólices</th>
+              <th>Sinistros Reais</th>
+              <th>Taxa de Sinistro</th>
+              <th>Prêmio Faturado</th>
+              <th>Receita Adicional</th>
+              <th>Sinistros Evitados</th>
+              <th>Apetite / Perfil</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: rgba(244, 63, 94, 0.08);">
+              <td><strong>Decil 1</strong></td>
+              <td>394</td>
+              <td>177</td>
+              <td><strong style="color: var(--rose);">44.92%</strong></td>
+              <td>R$ 1.575.500,00</td>
+              <td>R$ 205.500,00</td>
+              <td>R$ 4.680.000,00</td>
+              <td><span class="badge badge-rose">Altíssimo Risco</span></td>
+            </tr>
+            <tr style="background: rgba(245, 158, 11, 0.06);">
+              <td><strong>Decil 2</strong></td>
+              <td>393</td>
+              <td>95</td>
+              <td><strong style="color: var(--amber);">24.17%</strong></td>
+              <td>R$ 3.966.750,00</td>
+              <td>R$ 276.750,00</td>
+              <td>R$ 135.000,00</td>
+              <td><span class="badge badge-amber">Risco Moderado-Alto</span></td>
+            </tr>
+            <tr style="background: rgba(245, 158, 11, 0.04);">
+              <td><strong>Decil 3</strong></td>
+              <td>393</td>
+              <td>41</td>
+              <td><strong style="color: var(--amber);">10.43%</strong></td>
+              <td>R$ 3.977.500,00</td>
+              <td>R$ 277.500,00</td>
+              <td>R$ 90.000,00</td>
+              <td><span class="badge badge-amber">Risco Moderado</span></td>
+            </tr>
+            <tr>
+              <td><strong>Decil 4</strong></td>
+              <td>390</td>
+              <td>22</td>
+              <td>5.64%</td>
+              <td>R$ 3.730.000,00</td>
+              <td>R$ 0,00</td>
+              <td>R$ 135.000,00</td>
+              <td><span class="badge badge-cyan">Aprovado Padrão</span></td>
+            </tr>
+            <tr>
+              <td><strong>Decil 5</strong></td>
+              <td>396</td>
+              <td>13</td>
+              <td>3.28%</td>
+              <td>R$ 3.820.000,00</td>
+              <td>R$ 0,00</td>
+              <td>R$ 45.000,00</td>
+              <td><span class="badge badge-cyan">Aprovado Padrão</span></td>
+            </tr>
+            <tr>
+              <td><strong>Decil 6</strong></td>
+              <td>393</td>
+              <td>13</td>
+              <td>3.31%</td>
+              <td>R$ 3.720.000,00</td>
+              <td>R$ 0,00</td>
+              <td>R$ 0,00</td>
+              <td><span class="badge badge-cyan">Aprovado Padrão</span></td>
+            </tr>
+            <tr>
+              <td><strong>Decil 7</strong></td>
+              <td>393</td>
+              <td>9</td>
+              <td>2.29%</td>
+              <td>R$ 3.730.000,00</td>
+              <td>R$ 0,00</td>
+              <td>R$ 0,00</td>
+              <td><span class="badge badge-emerald">Baixo Risco</span></td>
+            </tr>
+            <tr>
+              <td><strong>Decil 8</strong></td>
+              <td>393</td>
+              <td>6</td>
+              <td>1.53%</td>
+              <td>R$ 3.780.000,00</td>
+              <td>R$ 0,00</td>
+              <td>R$ 45.000,00</td>
+              <td><span class="badge badge-emerald">Baixo Risco</span></td>
+            </tr>
+            <tr>
+              <td><strong>Decil 9</strong></td>
+              <td>393</td>
+              <td>3</td>
+              <td>0.76%</td>
+              <td>R$ 3.680.000,00</td>
+              <td>R$ 0,00</td>
+              <td>R$ 0,00</td>
+              <td><span class="badge badge-emerald">Excelente</span></td>
+            </tr>
+            <tr>
+              <td><strong>Decil 10</strong></td>
+              <td>394</td>
+              <td>2</td>
+              <td><strong style="color: var(--emerald);">0.51%</strong></td>
+              <td>R$ 3.230.000,00</td>
+              <td>R$ 0,00</td>
+              <td>R$ 0,00</td>
+              <td><span class="badge badge-emerald">Risco Mínimo</span></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="font-weight: 800; background: rgba(0,0,0,0.5);">
+              <td>TOTAL CARTEIRA</td>
+              <td>3.932</td>
+              <td>381</td>
+              <td>9.69%</td>
+              <td>R$ 35.209.750,00</td>
+              <td>R$ 759.750,00</td>
+              <td>R$ 5.130.000,00</td>
+              <td>-</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Gráfico de Barras Decil -->
+      <div class="chart-box">
+        <h4 style="font-size: 1.05rem; margin-bottom: 16px; color: #ffffff;">📉 Curva de Sinistralidade por Decil de Risco (Ordenação Perfeita)</h4>
+        
+        <div class="bar-row">
+          <div class="bar-label">Decil 1</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 100%; background: linear-gradient(90deg, #f43f5e, #e11d48);">44.92%</div>
+          </div>
+          <div class="bar-stat" style="color: var(--rose);">177 Sin.</div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Decil 2</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 53.8%; background: linear-gradient(90deg, #f59e0b, #d97706);">24.17%</div>
+          </div>
+          <div class="bar-stat" style="color: var(--amber);">95 Sin.</div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Decil 3</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 23.2%; background: linear-gradient(90deg, #f59e0b, #b45309);">10.43%</div>
+          </div>
+          <div class="bar-stat" style="color: var(--amber);">41 Sin.</div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Decil 4</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 12.6%; background: #06b6d4;">5.64%</div>
+          </div>
+          <div class="bar-stat">22 Sin.</div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Decil 5</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 7.3%; background: #0284c7;">3.28%</div>
+          </div>
+          <div class="bar-stat">13 Sin.</div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Decil 6</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 7.4%; background: #0284c7;">3.31%</div>
+          </div>
+          <div class="bar-stat">13 Sin.</div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Decil 7</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 5.1%; background: #10b981;">2.29%</div>
+          </div>
+          <div class="bar-stat">9 Sin.</div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Decil 8</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 3.4%; background: #10b981;">1.53%</div>
+          </div>
+          <div class="bar-stat">6 Sin.</div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Decil 9</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 1.7%; background: #059669;">0.76%</div>
+          </div>
+          <div class="bar-stat">3 Sin.</div>
+        </div>
+
+        <div class="bar-row">
+          <div class="bar-label">Decil 10</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: 1.1%; background: #047857;">0.51%</div>
+          </div>
+          <div class="bar-stat" style="color: var(--emerald);">2 Sin.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMULADOR INTERATIVO -->
+  <section id="simulador" style="background: radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 60%);">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-cyan section-tag">Simulação Interativa</span>
+        <h2 class="section-title">Simulador de Subscrição em Tempo Real</h2>
+        <p class="section-subtitle">
+          Altere as variáveis da proposta ou clique em um dos cenários pré-definidos para ver a execução instantânea do motor.
+        </p>
+      </div>
+
+      <div class="sim-card">
+        <div class="presets-row">
+          <span style="font-size: 0.8rem; color: var(--text-subtle); display: flex; align-items: center; font-weight: 600;">Cenários Prontos:</span>
+          <button class="preset-btn" onclick="applyPreset('padrao')">🏢 Empresa Saudável (D7 Fast-track)</button>
+          <button class="preset-btn" onclick="applyPreset('resgate')">⚠️ Resgate Comercial (D1 com GPS)</button>
+          <button class="preset-btn" onclick="applyPreset('recusa_d1')">🛑 D1 Sem Mitigação (Recusa)</button>
+          <button class="preset-btn" onclick="applyPreset('knockout_judicial')">🚫 Knockout Judicial (&gt;100 Proc.)</button>
+          <button class="preset-btn" onclick="applyPreset('knockout_lideranca')">💥 Risco Liderança em Área Crítica</button>
+        </div>
+
+        <div class="sim-grid">
+          <!-- Form Inputs -->
+          <div class="sim-form">
+            <div class="form-group">
+              <div class="form-label">
+                <span>Decil de Risco do Modelo ML</span>
+                <span class="form-value-tag" id="valDecil">Decil 4</span>
+              </div>
+              <input type="range" id="inputDecil" min="1" max="10" value="4" oninput="runSimulation()">
+              <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-subtle); margin-top: 4px;">
+                <span>D1 (Altíssimo Risco)</span>
+                <span>D5 (Médio)</span>
+                <span>D10 (Mínimo Risco)</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="form-label">
+                <span>Processos Judiciais como Réu</span>
+                <span class="form-value-tag" id="valProcessos">4 processos</span>
+              </div>
+              <input type="range" id="inputProcessos" min="0" max="150" value="4" oninput="runSimulation()">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Concentração Geográfica de Risco</label>
+              <select id="inputArea" onchange="runSimulation()">
+                <option value="BAIXISSIMA">BAIXISSIMA (Fator Seguro)</option>
+                <option value="BAIXA">BAIXA</option>
+                <option value="MEDIA">MEDIA</option>
+                <option value="ALTA">ALTA</option>
+                <option value="ALTISSIMA">ALTISSIMA (Zona Crítica de Sinistro)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Indicador de Risco de Liderança / Societário</label>
+              <select id="inputLideranca" onchange="runSimulation()">
+                <option value="0">0 - Liderança Sem Apontamentos Críticos</option>
+                <option value="1">1 - Alerta Crítico em Sócios / Administradores</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Setor Econômico (CNAE)</label>
+              <select id="inputCNAE" onchange="runSimulation()">
+                <option value="G">G - Comércio Atacadista / Varejista (Volume Principal)</option>
+                <option value="C">C - Indústria de Transformação</option>
+                <option value="F">F - Construção Civil</option>
+                <option value="S">S - Outras Atividades de Serviços (Alta Sinistralidade 18%)</option>
+                <option value="Q">Q - Saúde Humana e Serviços Sociais (Alta Sinistralidade 17%)</option>
+                <option value="M">M - Atividades Profissionais e Científicas (Menor Risco 4.7%)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ticket Médio de Prêmio Proposto (R$)</label>
+              <input type="number" id="inputPremio" value="10000" step="500" oninput="runSimulation()">
+            </div>
+          </div>
+
+          <!-- Result Panel -->
+          <div class="sim-result">
+            <div>
+              <div class="result-status-box" id="resStatusBox">
+                <div class="status-title" id="resDecision">APROVADO</div>
+                <div class="status-rule" id="resRule">Regra: RGR_R04_DECIL4_10_APROVADO</div>
+              </div>
+
+              <div style="background: rgba(255,255,255,0.02); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--cyan); margin-bottom: 16px;">
+                <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--cyan); font-weight: 700; margin-bottom: 2px;">
+                  Justificativa de Negócio
+                </div>
+                <div id="resJustificativa" style="font-size: 0.88rem; color: #e2e8f0;">
+                  Aprovação Automática: Risco dentro do apetite da seguradora.
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+                <span class="badge" id="badgeGPS">GPS: NÃO EXIGIDO</span>
+                <span class="badge" id="badgeAgravamento">AGRAVAMENTO: 0.0%</span>
+                <span class="badge badge-purple" id="badgeReasonCode">CODE: APROVADO_AUTOMATICO</span>
+              </div>
+            </div>
+
+            <div class="sim-finances">
+              <div class="fin-card">
+                <div class="fin-label">Prêmio Base Proposto</div>
+                <div class="fin-val" id="finBase">R$ 10.000,00</div>
+              </div>
+              <div class="fin-card">
+                <div class="fin-label">Prêmio Final Faturado</div>
+                <div class="fin-val" id="finFinal" style="color: var(--emerald);">R$ 10.000,00</div>
+              </div>
+              <div class="fin-card">
+                <div class="fin-label">Receita Extra Tarifária</div>
+                <div class="fin-val" id="finExtra" style="color: var(--amber);">R$ 0,00</div>
+              </div>
+              <div class="fin-card">
+                <div class="fin-label">Perda Sinistro Evitada</div>
+                <div class="fin-val" id="finEvitada" style="color: var(--rose);">R$ 0,00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPLORADOR DE DADOS AUDITADOS -->
+  <section id="base-auditada">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-cyan section-tag">Auditoria de Carteira</span>
+        <h2 class="section-title">Explorador de Propostas Processadas</h2>
+        <p class="section-subtitle">
+          Amostra autêntica extraída diretamente do arquivo <code>data/processed/resultado_motor_decisao_frotas.csv</code>.
+        </p>
+      </div>
+
+      <div class="explorer-controls">
+        <input type="text" id="tableSearch" class="search-input" placeholder="Buscar por CNPJ, CNAE ou motivo..." oninput="filterData()">
+        
+        <select id="filterDecision" onchange="filterData()" style="max-width: 220px;">
+          <option value="ALL">Todas as Decisões</option>
+          <option value="APROVADO">Apenas APROVADOS</option>
+          <option value="ACEITO_COM_CONDICAO">Apenas ACEITOS COM CONDIÇÃO</option>
+          <option value="RECUSADO">Apenas RECUSADOS</option>
+        </select>
+
+        <select id="filterDecil" onchange="filterData()" style="max-width: 160px;">
+          <option value="ALL">Todos os Decis</option>
+          <option value="1">Decil 1</option>
+          <option value="2">Decil 2</option>
+          <option value="3">Decil 3</option>
+          <option value="4">Decil 4</option>
+          <option value="5">Decil 5</option>
+          <option value="6">Decil 6</option>
+          <option value="7">Decil 7</option>
+          <option value="8">Decil 8</option>
+          <option value="9">Decil 9</option>
+          <option value="10">Decil 10</option>
+        </select>
+      </div>
+
+      <div class="table-container">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>CNPJ</th>
+              <th>Decisão Final</th>
+              <th>Decil</th>
+              <th>Prob. Sinistro</th>
+              <th>Sinistro Real</th>
+              <th>Regra Disparada</th>
+              <th>Exige GPS</th>
+              <th>Agravamento</th>
+              <th>Prêmio Final</th>
+              <th>Perda Evitada</th>
+              <th>CNAE</th>
+              <th>Área Risco</th>
+              <th>Processos</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted);">
+        <span id="tableCount">Exibindo registros...</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline btn-sm" id="btnPrev" onclick="prevPage()">Anterior</button>
+          <button class="btn btn-outline btn-sm" id="btnNext" onclick="nextPage()">Próximo</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARQUIVOS DO PROJETO & ENTREGÁVEIS -->
+  <section id="arquivos" style="background: rgba(0, 0, 0, 0.2);">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-purple section-tag">Estrutura do Repositório</span>
+        <h2 class="section-title">Arquivos e Entregáveis do Projeto</h2>
+        <p class="section-subtitle">
+          Todos os artefatos presentes na pasta do Grupo 5, organizados por finalidade técnica e acadêmica.
+        </p>
+      </div>
+
+      <div class="files-grid">
+        <div class="file-card">
+          <div class="file-icon">📓</div>
+          <div class="file-info">
+            <div class="file-name">Notebook Google Colab</div>
+            <div class="file-path">notebooks/colab_projeto_final.ipynb</div>
+            <div class="file-desc">Pipeline completo de ponta a ponta com as 6 tarefas CRISP-DM, gráficos e exportação do CSV final.</div>
+          </div>
+        </div>
+
+        <div class="file-card">
+          <div class="file-icon">📄</div>
+          <div class="file-info">
+            <div class="file-name">Relatório Técnico Final</div>
+            <div class="file-path">docs/Relatorio_Tecnico_Final_Frotas_PJ.docx</div>
+            <div class="file-desc">Documento acadêmico/executivo completo detalhando fundamentação atuarial, metodologia e análises.</div>
+          </div>
+        </div>
+
+        <div class="file-card">
+          <div class="file-icon">⚙️</div>
+          <div class="file-info">
+            <div class="file-name">Política em XML (Trillia)</div>
+            <div class="file-path">docs/politica_credito_frotas.xml</div>
+            <div class="file-desc">Especificação da política de subscrição no padrão DecisionRunnerNotation com regras e cálculos.</div>
+          </div>
+        </div>
+
+        <div class="file-card">
+          <div class="file-icon">📊</div>
+          <div class="file-info">
+            <div class="file-name">Apresentação Pitch Final</div>
+            <div class="file-path">presentation/[GRUPO 5] Pitch_Final_Frotas_PJ.pptx</div>
+            <div class="file-desc">Slides executivos para a banca avaliadora com storytelling de negócio, KPIs e demonstração.</div>
+          </div>
+        </div>
+
+        <div class="file-card">
+          <div class="file-icon">💾</div>
+          <div class="file-info">
+            <div class="file-name">Base de Dados Bruta (Bureau)</div>
+            <div class="file-path">data/raw/cesar_residencia_trillia_frota_pj_mercado.csv</div>
+            <div class="file-desc">3.932 apólices e 102 variáveis de enriquecimento cadastral, judicial e espacial anonimizadas.</div>
+          </div>
+        </div>
+
+        <div class="file-card">
+          <div class="file-icon">📈</div>
+          <div class="file-info">
+            <div class="file-name">Base Auditada pós-Motor</div>
+            <div class="file-path">data/processed/resultado_motor_decisao_frotas.csv</div>
+            <div class="file-desc">Carteira completa com decisões finais, regras disparadas, prêmios faturados e perdas evitadas.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guia Passo a Passo de Execução -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 24px; margin-top: 30px;">
+        <h4 style="font-size: 1.1rem; color: #ffffff; margin-bottom: 14px;">🚀 Como Reproduzir o Projeto no Google Colab</h4>
+        <ol style="margin-left: 20px; font-size: 0.9rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px;">
+          <li>Acesse o <a href="https://colab.research.google.com/" target="_blank" style="color: var(--cyan);">Google Colab</a> e faça upload do arquivo <code>notebooks/colab_projeto_final.ipynb</code>.</li>
+          <li>Na <strong>Tarefa 1</strong>, faça o upload da base bruta <code>data/raw/cesar_residencia_trillia_frota_pj_mercado.csv</code>.</li>
+          <li>Execute todas as células sequencialmente (menu <em>Ambiente de Execução &rarr; Executar Tudo</em>).</li>
+          <li>O notebook executará o split temporal OOT, treinará a Random Forest, gerará o XML e instanciará o <code>TrilliaXMLPolicyEngine</code>.</li>
+          <li>Ao final da <strong>Tarefa 6</strong>, o arquivo de auditoria <code>resultado_motor_decisao_frotas.csv</code> será gerado e baixado automaticamente.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ & DEFESA PERANTE A BANCA -->
+  <section id="faq">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-amber section-tag">Perguntas & Respostas Estratégicas</span>
+        <h2 class="section-title">FAQ: Dúvidas Técnicas, Atuariais e de Negócio</h2>
+        <p class="section-subtitle">
+          Respostas detalhadas para os principais questionamentos de bancas avaliadoras e executivos de seguradoras.
+        </p>
+      </div>
+
+      <div class="faq-list">
+        <!-- Q1 -->
+        <div class="faq-item active">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>1. Por que descartar os registros de 2024 (Março a Maio) da base de modelagem?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Seguros de frotas automotivas sofrem do efeito atuarial conhecido como <strong>IBNR (Incurred But Not Reported)</strong> e defasagem de regulação. Um sinistro ocorrido leva semanas ou meses entre a ocorrência, aviso à seguradora, vistoria e liquidação da indenização de casco. Analisando as safras, 2021-2022 apresentava 11,73% de sinistralidade e 2023 registrava 9,43%, enquanto os meses recentes de 2024 registravam apenas 2,94%. Alimentar o modelo com esses registros recentes ensinaria ao algoritmo falsos negativos (apólices marcadas como sem sinistro que na verdade ainda estão em liquidação), corrompendo a capacidade discriminante do score.
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>2. O que é o Split Out-of-Time (OOT) e por que não usar um K-Fold aleatório tradicional?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            A validação cruzada aleatória (K-Fold) mistura dados de anos diferentes no treino e teste, permitindo vazamento temporal (*data leakage*). No mundo real de subscrição, a seguradora sempre utiliza modelos treinados no passado para cotar propostas futuras. O split <strong>Out-of-Time (OOT)</strong> replica essa realidade: treinamos com safras até Junho de 2023 e testamos cegamente em safras futuras (Julho de 2023 a Fevereiro de 2024). Obter um AUC de 0.92 no split temporal comprova a solidez e a imunidade do modelo ao longo do tempo.
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>3. Por que adotar uma abordagem 3-Way em vez de simplesmente recusar todo o Decil 1?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Recusar o Decil 1 por completo geraria um efeito colateral grave: <strong>perda de mercado e desgaste comercial</strong> com corretores e frotistas parceiros. Na nossa carteira, 137 frotas do Decil 1 possuíam baixo passivo judicial (≤ 10 processos) e operavam em áreas de risco geográfico favorável. A abordagem 3-Way permitiu o <strong>Resgate Comercial</strong>: em vez de dizer "não", a seguradora aceita a proposta impondo salvaguardas (+15% de sobretaxa no prêmio e exigência obrigatória de rastreador GPS). Isso gerou mais de R$ 200 mil em receita extra só nesse subgrupo, mantendo o controle do risco.
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>4. Qual a fundamentação técnica e atuarial da exigência do Rastreador GPS no Decil 1?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            A telemática e o rastreador GPS atuam em duas frentes fundamentais: (1) <strong>Efeito Psicológico / Comportamental</strong>: frotistas e motoristas monitorados reduzem velocidade média, desvios de rota e condutas imprudentes em até 40%; (2) <strong>Recuperação em Roubo/Furto</strong>: veículos rastreados atingem taxas de recuperação policial superiores a 85%, reduzindo drasticamente o montante indenizado na cobertura de casco por perda total.
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>5. Por que escolher o Random Forest (max_depth=6) em vez de redes neurais ou XGBoost?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Em subscrição e crédito regulados pela SUSEP e LGPD, <strong>explicabilidade, estabilidade e conformidade</strong> são mandatórias. Redes neurais profundas atuam como caixas-pretas que dificultam auditorias regulatórias. O algoritmo Random Forest com restrição de profundidade (<code>max_depth=6</code>) evita o sobreajuste (overfitting) em variáveis ruidosas de bureau, oferece excelente ordenação monotônica de probabilidades em decis e mantém um tempo de inferência ultrabaixo (&lt;10ms por cotação), ideal para APIs de emissão em tempo real.
+          </div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>6. O que é o Filtro Tríplice e por que o teste Kolmogorov-Smirnov (KS) é essencial?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            O Filtro Tríplice submete as 102 variáveis a três barreiras sucessivas: (1) <strong>Completude</strong>: descarte de variáveis com mais de 50% de nulos; (2) <strong>Informação Mútua (MI)</strong>: seleção das variáveis não-lineares com maior poder explicativo em relação ao sinistro de casco; (3) <strong>Teste KS de Estabilidade Temporal</strong>: compara a distribuição de cada variável entre o histórico (2021-2022) e o ano recente (2023). Variáveis com alto drift (mudança estrutural de comportamento) foram penalizadas para que o modelo não dependesse de indicadores voláteis.
+          </div>
+        </div>
+
+        <!-- Q7 -->
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>7. O que é o padrão Trillia RiskPack / DecisionRunnerNotation?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            É o padrão industrial de engenharia de decisão desenvolvido pela Neurotech / B3. Ele desacopla a inteligência estatística (score de ML gerado em Python) das regras de governança e apetite ao risco (especificadas em XML declarativo). Isso permite que analistas de produtos e subscritores alterem taxas de agravamento, limites de processos ou critérios de knockout diretamente no XML sem precisar retreinar modelos ou alterar códigos de infraestrutura.
+          </div>
+        </div>
+
+        <!-- Q8 -->
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>8. Como foram calculados os R$ 5,13M de perda evitada e os R$ 759K de receita extra?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            A simulação financeira utilizou premissas de benchmark do mercado de frotas PJ: ticket médio de prêmio anual por proposta de <strong>R$ 10.000,00</strong> e custo médio atuarial de indenização de casco de <strong>R$ 45.000,00</strong>. Nas 487 propostas recusadas pelo motor, existiam 114 empresas com sinistro real comprovado nos dados; barrar essas apólices evitou <code>114 x R$ 45.000 = R$ 5.130.000,00</code> em desembolso de sinistro. Nas frotas aceitas com condição (Decis 1 mitigado com +15% e Decis 2-3 com +7,5%), gerou-se uma sobretaxa direta acumulada de <strong>R$ 759.750,00</strong>.
+          </div>
+        </div>
+
+        <!-- Q9 -->
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>9. Quais setores da economia (CNAE) demonstraram maior sinistralidade?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            A análise exploratória setorial (Tarefa 2.1) revelou grandes discrepâncias de risco: o <strong>Setor S (Outras Atividades de Serviços)</strong> registrou <strong>18,0%</strong> de taxa de sinistro e o <strong>Setor Q (Saúde e Serviços Sociais)</strong> registrou <strong>17,1%</strong> (quase o dobro da média geral de 9,69%). Em contrapartida, o <strong>Setor M (Atividades Profissionais e Científicas)</strong> apresentou apenas <strong>4,7%</strong> de sinistro. O <strong>Setor G (Comércio Atacadista e Varejista)</strong> concentrou a maior fatia da carteira (33,5% das empresas) com sinistralidade controlada de 10,8%.
+          </div>
+        </div>
+
+        <!-- Q10 -->
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>10. Como a solução atende às exigências de explicabilidade da LGPD e SUSEP?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            A LGPD (art. 20) concede ao titular o direito à revisão e explicação de decisões tomadas unicamente com base em tratamento automatizado. No Trillia RiskPack, toda proposta processada recebe campos auditáveis obrigatórios: <code>RGR_REGRA_DISPARADA_ID</code>, <code>CALC_REASON_CODE</code> e <code>CALC_JUSTIFICATIVA_NEGOCIO</code>. Dessa forma, nenhuma proposta é rejeitada ou agravada sem um motivo factual de negócio rastreável (ex: passivo judicial excessivo ou perfil estatístico de alto risco mitigável).
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-team">
+        <strong>Projeto Final de Pós-Graduação em Inteligência Artificial e Ciência de Dados</strong><br>
+        Grupo 5: Breno, Danyllo, Ernesto, Juliana, Karine e Rayanne
+      </div>
+      <p style="font-size: 0.8rem;">
+        Parceria CESAR • Neurotech • B3 • Padrão Trillia RiskPack &copy; 2026. Todos os direitos reservados.
+      </p>
+      <div style="margin-top: 14px;">
+        <a href="#" class="btn btn-outline btn-sm" style="font-size: 0.75rem;">⬆️ Voltar ao Topo</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- EMBEDDED JAVASCRIPT LOGIC -->
+  <script>
+    // Embedded real sample data from resultado_motor_decisao_frotas.csv
+    const rawData = [{"cnpj": "CNPJ_000001", "sinistro_real": 1, "prob": 11.3, "decil": 4, "decisao": "APROVADO", "regra": "RGR_R04_DECIL4_10_APROVADO", "motivo": "APROVADO_AUTOMATICO_BAIXO_RISCO", "justificativa": "Aprovacao Automatica: Risco dentro do apetite da seguradora.", "agravamento": 0.0, "gps": false, "premio": 10000.0, "rec_extra": 0.0, "perda_evitada": 0.0, "cnae": "G", "porte": "F", "area_risco": "BAIXISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000002", "sinistro_real": 1, "prob": 9.9, "decil": 6, "decisao": "APROVADO", "regra": "RGR_R04_DECIL4_10_APROVADO", "motivo": "APROVADO_AUTOMATICO_BAIXO_RISCO", "justificativa": "Aprovacao Automatica: Risco dentro do apetite da seguradora.", "agravamento": 0.0, "gps": false, "premio": 10000.0, "rec_extra": 0.0, "perda_evitada": 0.0, "cnae": "G", "porte": "N/I", "area_risco": "ALTA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000003", "sinistro_real": 1, "prob": 12.4, "decil": 2, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R03_DECIL2_3_CONDICIONAL", "motivo": "ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO", "justificativa": "Aceite Condicional Decil Intermediario (+7.5% premio).", "agravamento": 7.5, "gps": false, "premio": 10750.0, "rec_extra": 750.0, "perda_evitada": 0.0, "cnae": "G", "porte": "C", "area_risco": "BAIXISSIMA", "processos": 3, "lideranca": 1}, {"cnpj": "CNPJ_000004", "sinistro_real": 1, "prob": 14.2, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_R02_DECIL1_RECUSA_PADRAO", "motivo": "DECIL1_ALTO_RISCO_SEM_MITIGACAO", "justificativa": "Recusa por Decil 1 de Risco sem criterios para resgate comercial.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "F", "porte": "D", "area_risco": "ALTISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000005", "sinistro_real": 1, "prob": 11.7, "decil": 3, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R03_DECIL2_3_CONDICIONAL", "motivo": "ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO", "justificativa": "Aceite Condicional Decil Intermediario (+7.5% premio).", "agravamento": 7.5, "gps": false, "premio": 10750.0, "rec_extra": 750.0, "perda_evitada": 0.0, "cnae": "G", "porte": "N/I", "area_risco": "ALTISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000006", "sinistro_real": 1, "prob": 13.2, "decil": 2, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R03_DECIL2_3_CONDICIONAL", "motivo": "ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO", "justificativa": "Aceite Condicional Decil Intermediario (+7.5% premio).", "agravamento": 7.5, "gps": false, "premio": 10750.0, "rec_extra": 750.0, "perda_evitada": 0.0, "cnae": "C", "porte": "J", "area_risco": "ALTISSIMA", "processos": 15, "lideranca": 0}, {"cnpj": "CNPJ_000007", "sinistro_real": 1, "prob": 23.6, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_R02_DECIL1_RECUSA_PADRAO", "motivo": "DECIL1_ALTO_RISCO_SEM_MITIGACAO", "justificativa": "Recusa por Decil 1 de Risco sem criterios para resgate comercial.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "C", "porte": "H", "area_risco": "ALTA", "processos": 2, "lideranca": 0}, {"cnpj": "CNPJ_000008", "sinistro_real": 1, "prob": 24.1, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS", "motivo": "K02_JUDICIAL_EXTREMO", "justificativa": "Recusa Sumaria: Elevado passivo judicial (> 100 processos como requerido).", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "J", "porte": "J", "area_risco": "ALTA", "processos": 189, "lideranca": 0}, {"cnpj": "CNPJ_000009", "sinistro_real": 1, "prob": 13.3, "decil": 2, "decisao": "RECUSADO", "regra": "RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS", "motivo": "K02_JUDICIAL_EXTREMO", "justificativa": "Recusa Sumaria: Elevado passivo judicial (> 100 processos como requerido).", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "C", "porte": "J", "area_risco": "ALTA", "processos": 382, "lideranca": 0}, {"cnpj": "CNPJ_000010", "sinistro_real": 1, "prob": 12.6, "decil": 2, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R03_DECIL2_3_CONDICIONAL", "motivo": "ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO", "justificativa": "Aceite Condicional Decil Intermediario (+7.5% premio).", "agravamento": 7.5, "gps": false, "premio": 10750.0, "rec_extra": 750.0, "perda_evitada": 0.0, "cnae": "G", "porte": "A", "area_risco": "BAIXISSIMA", "processos": 0, "lideranca": 1}, {"cnpj": "CNPJ_000011", "sinistro_real": 1, "prob": 11.3, "decil": 4, "decisao": "RECUSADO", "regra": "RGR_K01_RISCO_LIDERANCA_AREA_CRITICA", "motivo": "K01_LIDERANCA_AREA_CRITICA", "justificativa": "Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "G", "porte": "H", "area_risco": "ALTISSIMA", "processos": 16, "lideranca": 1}, {"cnpj": "CNPJ_000012", "sinistro_real": 1, "prob": 34.5, "decil": 1, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R01_DECIL1_RESGATE_COM_RASTREADOR", "motivo": "RECUPERACAO_COMERCIAL_D1", "justificativa": "Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.", "agravamento": 15.0, "gps": true, "premio": 11500.0, "rec_extra": 1500.0, "perda_evitada": 0.0, "cnae": "H", "porte": "N/I", "area_risco": "BAIXISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000013", "sinistro_real": 1, "prob": 15.4, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_R02_DECIL1_RECUSA_PADRAO", "motivo": "DECIL1_ALTO_RISCO_SEM_MITIGACAO", "justificativa": "Recusa por Decil 1 de Risco sem criterios para resgate comercial.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "H", "porte": "N/I", "area_risco": "ALTA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000014", "sinistro_real": 1, "prob": 10.4, "decil": 5, "decisao": "APROVADO", "regra": "RGR_R04_DECIL4_10_APROVADO", "motivo": "APROVADO_AUTOMATICO_BAIXO_RISCO", "justificativa": "Aprovacao Automatica: Risco dentro do apetite da seguradora.", "agravamento": 0.0, "gps": false, "premio": 10000.0, "rec_extra": 0.0, "perda_evitada": 0.0, "cnae": "C", "porte": "J", "area_risco": "ALTA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000015", "sinistro_real": 1, "prob": 11.8, "decil": 3, "decisao": "RECUSADO", "regra": "RGR_K01_RISCO_LIDERANCA_AREA_CRITICA", "motivo": "K01_LIDERANCA_AREA_CRITICA", "justificativa": "Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "F", "porte": "N/I", "area_risco": "ALTISSIMA", "processos": 0, "lideranca": 1}, {"cnpj": "CNPJ_000016", "sinistro_real": 1, "prob": 23.5, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_R02_DECIL1_RECUSA_PADRAO", "motivo": "DECIL1_ALTO_RISCO_SEM_MITIGACAO", "justificativa": "Recusa por Decil 1 de Risco sem criterios para resgate comercial.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "N", "porte": "N/I", "area_risco": "ALTISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000017", "sinistro_real": 1, "prob": 13.2, "decil": 2, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R03_DECIL2_3_CONDICIONAL", "motivo": "ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO", "justificativa": "Aceite Condicional Decil Intermediario (+7.5% premio).", "agravamento": 7.5, "gps": false, "premio": 10750.0, "rec_extra": 750.0, "perda_evitada": 0.0, "cnae": "S", "porte": "D", "area_risco": "BAIXISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000018", "sinistro_real": 1, "prob": 18.4, "decil": 1, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R01_DECIL1_RESGATE_COM_RASTREADOR", "motivo": "RECUPERACAO_COMERCIAL_D1", "justificativa": "Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.", "agravamento": 15.0, "gps": true, "premio": 11500.0, "rec_extra": 1500.0, "perda_evitada": 0.0, "cnae": "C", "porte": "N/I", "area_risco": "BAIXISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000019", "sinistro_real": 1, "prob": 17.4, "decil": 1, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R01_DECIL1_RESGATE_COM_RASTREADOR", "motivo": "RECUPERACAO_COMERCIAL_D1", "justificativa": "Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.", "agravamento": 15.0, "gps": true, "premio": 11500.0, "rec_extra": 1500.0, "perda_evitada": 0.0, "cnae": "S", "porte": "EMPRESA_ISENTA", "area_risco": "BAIXISSIMA", "processos": 4, "lideranca": 0}, {"cnpj": "CNPJ_000020", "sinistro_real": 1, "prob": 12.1, "decil": 2, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R03_DECIL2_3_CONDICIONAL", "motivo": "ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO", "justificativa": "Aceite Condicional Decil Intermediario (+7.5% premio).", "agravamento": 7.5, "gps": false, "premio": 10750.0, "rec_extra": 750.0, "perda_evitada": 0.0, "cnae": "F", "porte": "N/I", "area_risco": "ALTA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000021", "sinistro_real": 1, "prob": 11.0, "decil": 4, "decisao": "RECUSADO", "regra": "RGR_K01_RISCO_LIDERANCA_AREA_CRITICA", "motivo": "K01_LIDERANCA_AREA_CRITICA", "justificativa": "Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "J", "porte": "D", "area_risco": "ALTISSIMA", "processos": 0, "lideranca": 1}, {"cnpj": "CNPJ_000022", "sinistro_real": 1, "prob": 15.4, "decil": 1, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R01_DECIL1_RESGATE_COM_RASTREADOR", "motivo": "RECUPERACAO_COMERCIAL_D1", "justificativa": "Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.", "agravamento": 15.0, "gps": true, "premio": 11500.0, "rec_extra": 1500.0, "perda_evitada": 0.0, "cnae": "G", "porte": "D", "area_risco": "BAIXISSIMA", "processos": 1, "lideranca": 0}, {"cnpj": "CNPJ_000023", "sinistro_real": 1, "prob": 12.7, "decil": 2, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R03_DECIL2_3_CONDICIONAL", "motivo": "ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO", "justificativa": "Aceite Condicional Decil Intermediario (+7.5% premio).", "agravamento": 7.5, "gps": false, "premio": 10750.0, "rec_extra": 750.0, "perda_evitada": 0.0, "cnae": "N", "porte": "C", "area_risco": "BAIXISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000024", "sinistro_real": 1, "prob": 10.3, "decil": 5, "decisao": "APROVADO", "regra": "RGR_R04_DECIL4_10_APROVADO", "motivo": "APROVADO_AUTOMATICO_BAIXO_RISCO", "justificativa": "Aprovacao Automatica: Risco dentro do apetite da seguradora.", "agravamento": 0.0, "gps": false, "premio": 10000.0, "rec_extra": 0.0, "perda_evitada": 0.0, "cnae": "C", "porte": "I", "area_risco": "ALTA", "processos": 1, "lideranca": 0}, {"cnpj": "CNPJ_000025", "sinistro_real": 1, "prob": 60.2, "decil": 1, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R01_DECIL1_RESGATE_COM_RASTREADOR", "motivo": "RECUPERACAO_COMERCIAL_D1", "justificativa": "Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.", "agravamento": 15.0, "gps": true, "premio": 11500.0, "rec_extra": 1500.0, "perda_evitada": 0.0, "cnae": "G", "porte": "N/I", "area_risco": "BAIXISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000026", "sinistro_real": 1, "prob": 15.1, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_R02_DECIL1_RECUSA_PADRAO", "motivo": "DECIL1_ALTO_RISCO_SEM_MITIGACAO", "justificativa": "Recusa por Decil 1 de Risco sem criterios para resgate comercial.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "M", "porte": "D", "area_risco": "ALTA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000027", "sinistro_real": 1, "prob": 13.5, "decil": 2, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R03_DECIL2_3_CONDICIONAL", "motivo": "ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO", "justificativa": "Aceite Condicional Decil Intermediario (+7.5% premio).", "agravamento": 7.5, "gps": false, "premio": 10750.0, "rec_extra": 750.0, "perda_evitada": 0.0, "cnae": "C", "porte": "E", "area_risco": "BAIXISSIMA", "processos": 4, "lideranca": 0}, {"cnpj": "CNPJ_000028", "sinistro_real": 1, "prob": 13.9, "decil": 2, "decisao": "RECUSADO", "regra": "RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS", "motivo": "K02_JUDICIAL_EXTREMO", "justificativa": "Recusa Sumaria: Elevado passivo judicial (> 100 processos como requerido).", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "G", "porte": "J", "area_risco": "BAIXISSIMA", "processos": 212, "lideranca": 0}, {"cnpj": "CNPJ_000029", "sinistro_real": 1, "prob": 12.1, "decil": 2, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R03_DECIL2_3_CONDICIONAL", "motivo": "ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO", "justificativa": "Aceite Condicional Decil Intermediario (+7.5% premio).", "agravamento": 7.5, "gps": false, "premio": 10750.0, "rec_extra": 750.0, "perda_evitada": 0.0, "cnae": "G", "porte": "D", "area_risco": "ALTA", "processos": 3, "lideranca": 0}, {"cnpj": "CNPJ_000030", "sinistro_real": 1, "prob": 10.3, "decil": 5, "decisao": "APROVADO", "regra": "RGR_R04_DECIL4_10_APROVADO", "motivo": "APROVADO_AUTOMATICO_BAIXO_RISCO", "justificativa": "Aprovacao Automatica: Risco dentro do apetite da seguradora.", "agravamento": 0.0, "gps": false, "premio": 10000.0, "rec_extra": 0.0, "perda_evitada": 0.0, "cnae": "G", "porte": "J", "area_risco": "BAIXISSIMA", "processos": 4, "lideranca": 0}, {"cnpj": "CNPJ_000032", "sinistro_real": 1, "prob": 14.3, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_R02_DECIL1_RECUSA_PADRAO", "motivo": "DECIL1_ALTO_RISCO_SEM_MITIGACAO", "justificativa": "Recusa por Decil 1 de Risco sem criterios para resgate comercial.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "C", "porte": "D", "area_risco": "ALTA", "processos": 1, "lideranca": 0}, {"cnpj": "CNPJ_000034", "sinistro_real": 1, "prob": 25.3, "decil": 1, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R01_DECIL1_RESGATE_COM_RASTREADOR", "motivo": "RECUPERACAO_COMERCIAL_D1", "justificativa": "Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.", "agravamento": 15.0, "gps": true, "premio": 11500.0, "rec_extra": 1500.0, "perda_evitada": 0.0, "cnae": "C", "porte": "G", "area_risco": "BAIXISSIMA", "processos": 1, "lideranca": 0}, {"cnpj": "CNPJ_000036", "sinistro_real": 1, "prob": 16.8, "decil": 1, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R01_DECIL1_RESGATE_COM_RASTREADOR", "motivo": "RECUPERACAO_COMERCIAL_D1", "justificativa": "Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.", "agravamento": 15.0, "gps": true, "premio": 11500.0, "rec_extra": 1500.0, "perda_evitada": 0.0, "cnae": "H", "porte": "G", "area_risco": "MEDIA", "processos": 9, "lideranca": 0}, {"cnpj": "CNPJ_000037", "sinistro_real": 1, "prob": 69.6, "decil": 1, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R01_DECIL1_RESGATE_COM_RASTREADOR", "motivo": "RECUPERACAO_COMERCIAL_D1", "justificativa": "Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.", "agravamento": 15.0, "gps": true, "premio": 11500.0, "rec_extra": 1500.0, "perda_evitada": 0.0, "cnae": "G", "porte": "N/I", "area_risco": "BAIXISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000038", "sinistro_real": 1, "prob": 14.1, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_R02_DECIL1_RECUSA_PADRAO", "motivo": "DECIL1_ALTO_RISCO_SEM_MITIGACAO", "justificativa": "Recusa por Decil 1 de Risco sem criterios para resgate comercial.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "M", "porte": "A", "area_risco": "ALTA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000040", "sinistro_real": 1, "prob": 28.9, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS", "motivo": "K02_JUDICIAL_EXTREMO", "justificativa": "Recusa Sumaria: Elevado passivo judicial (> 100 processos como requerido).", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "G", "porte": "J", "area_risco": "ALTISSIMA", "processos": 10476, "lideranca": 0}, {"cnpj": "CNPJ_000041", "sinistro_real": 1, "prob": 16.9, "decil": 1, "decisao": "ACEITO_COM_CONDICAO", "regra": "RGR_R01_DECIL1_RESGATE_COM_RASTREADOR", "motivo": "RECUPERACAO_COMERCIAL_D1", "justificativa": "Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.", "agravamento": 15.0, "gps": true, "premio": 11500.0, "rec_extra": 1500.0, "perda_evitada": 0.0, "cnae": "C", "porte": "F", "area_risco": "MEDIA", "processos": 3, "lideranca": 0}, {"cnpj": "CNPJ_000042", "sinistro_real": 1, "prob": 9.8, "decil": 6, "decisao": "APROVADO", "regra": "RGR_R04_DECIL4_10_APROVADO", "motivo": "APROVADO_AUTOMATICO_BAIXO_RISCO", "justificativa": "Aprovacao Automatica: Risco dentro do apetite da seguradora.", "agravamento": 0.0, "gps": false, "premio": 10000.0, "rec_extra": 0.0, "perda_evitada": 0.0, "cnae": "G", "porte": "N/I", "area_risco": "MEDIA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000048", "sinistro_real": 1, "prob": 10.3, "decil": 5, "decisao": "APROVADO", "regra": "RGR_R04_DECIL4_10_APROVADO", "motivo": "APROVADO_AUTOMATICO_BAIXO_RISCO", "justificativa": "Aprovacao Automatica: Risco dentro do apetite da seguradora.", "agravamento": 0.0, "gps": false, "premio": 10000.0, "rec_extra": 0.0, "perda_evitada": 0.0, "cnae": "G", "porte": "D", "area_risco": "BAIXISSIMA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000050", "sinistro_real": 1, "prob": 50.3, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_R02_DECIL1_RECUSA_PADRAO", "motivo": "DECIL1_ALTO_RISCO_SEM_MITIGACAO", "justificativa": "Recusa por Decil 1 de Risco sem criterios para resgate comercial.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "G", "porte": "B", "area_risco": "ALTA", "processos": 0, "lideranca": 0}, {"cnpj": "CNPJ_000053", "sinistro_real": 1, "prob": 10.3, "decil": 5, "decisao": "APROVADO", "regra": "RGR_R04_DECIL4_10_APROVADO", "motivo": "APROVADO_AUTOMATICO_BAIXO_RISCO", "justificativa": "Aprovacao Automatica: Risco dentro do apetite da seguradora.", "agravamento": 0.0, "gps": false, "premio": 10000.0, "rec_extra": 0.0, "perda_evitada": 0.0, "cnae": "G", "porte": "A", "area_risco": "BAIXISSIMA", "processos": 0, "lideranca": 1}, {"cnpj": "CNPJ_000054", "sinistro_real": 1, "prob": 19.7, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_R02_DECIL1_RECUSA_PADRAO", "motivo": "DECIL1_ALTO_RISCO_SEM_MITIGACAO", "justificativa": "Recusa por Decil 1 de Risco sem criterios para resgate comercial.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "C", "porte": "H", "area_risco": "BAIXISSIMA", "processos": 13, "lideranca": 0}, {"cnpj": "CNPJ_000074", "sinistro_real": 1, "prob": 8.2, "decil": 9, "decisao": "APROVADO", "regra": "RGR_R04_DECIL4_10_APROVADO", "motivo": "APROVADO_AUTOMATICO_BAIXO_RISCO", "justificativa": "Aprovacao Automatica: Risco dentro do apetite da seguradora.", "agravamento": 0.0, "gps": false, "premio": 10000.0, "rec_extra": 0.0, "perda_evitada": 0.0, "cnae": "G", "porte": "D", "area_risco": "ALTISSIMA", "processos": 4, "lideranca": 0}, {"cnpj": "CNPJ_000088", "sinistro_real": 1, "prob": 19.5, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS", "motivo": "K02_JUDICIAL_EXTREMO", "justificativa": "Recusa Sumaria: Elevado passivo judicial (> 100 processos como requerido).", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "C", "porte": "J", "area_risco": "ALTA", "processos": 196, "lideranca": 0}, {"cnpj": "CNPJ_000109", "sinistro_real": 1, "prob": 11.6, "decil": 3, "decisao": "RECUSADO", "regra": "RGR_K01_RISCO_LIDERANCA_AREA_CRITICA", "motivo": "K01_LIDERANCA_AREA_CRITICA", "justificativa": "Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "N", "porte": "F", "area_risco": "ALTISSIMA", "processos": 0, "lideranca": 1}, {"cnpj": "CNPJ_000119", "sinistro_real": 1, "prob": 16.3, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_K01_RISCO_LIDERANCA_AREA_CRITICA", "motivo": "K01_LIDERANCA_AREA_CRITICA", "justificativa": "Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "C", "porte": "H", "area_risco": "ALTISSIMA", "processos": 1, "lideranca": 1}, {"cnpj": "CNPJ_000121", "sinistro_real": 1, "prob": 15.4, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_K01_RISCO_LIDERANCA_AREA_CRITICA", "motivo": "K01_LIDERANCA_AREA_CRITICA", "justificativa": "Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "C", "porte": "H", "area_risco": "ALTISSIMA", "processos": 4, "lideranca": 1}, {"cnpj": "CNPJ_000134", "sinistro_real": 1, "prob": 10.3, "decil": 5, "decisao": "RECUSADO", "regra": "RGR_K01_RISCO_LIDERANCA_AREA_CRITICA", "motivo": "K01_LIDERANCA_AREA_CRITICA", "justificativa": "Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "N", "porte": "E", "area_risco": "ALTISSIMA", "processos": 3, "lideranca": 1}, {"cnpj": "CNPJ_000154", "sinistro_real": 1, "prob": 18.7, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS", "motivo": "K02_JUDICIAL_EXTREMO", "justificativa": "Recusa Sumaria: Elevado passivo judicial (> 100 processos como requerido).", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "Q", "porte": "EMPRESA_ISENTA", "area_risco": "BAIXISSIMA", "processos": 127, "lideranca": 0}, {"cnpj": "CNPJ_000158", "sinistro_real": 1, "prob": 16.9, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS", "motivo": "K02_JUDICIAL_EXTREMO", "justificativa": "Recusa Sumaria: Elevado passivo judicial (> 100 processos como requerido).", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "C", "porte": "J", "area_risco": "BAIXISSIMA", "processos": 561, "lideranca": 0}, {"cnpj": "CNPJ_000173", "sinistro_real": 1, "prob": 14.7, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_K01_RISCO_LIDERANCA_AREA_CRITICA", "motivo": "K01_LIDERANCA_AREA_CRITICA", "justificativa": "Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "T", "porte": "D", "area_risco": "ALTISSIMA", "processos": 0, "lideranca": 1}, {"cnpj": "CNPJ_000194", "sinistro_real": 1, "prob": 37.7, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS", "motivo": "K02_JUDICIAL_EXTREMO", "justificativa": "Recusa Sumaria: Elevado passivo judicial (> 100 processos como requerido).", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "P", "porte": "EMPRESA_ISENTA", "area_risco": "ALTA", "processos": 123, "lideranca": 0}, {"cnpj": "CNPJ_000195", "sinistro_real": 1, "prob": 16.3, "decil": 1, "decisao": "RECUSADO", "regra": "RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS", "motivo": "K02_JUDICIAL_EXTREMO", "justificativa": "Recusa Sumaria: Elevado passivo judicial (> 100 processos como requerido).", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "H", "porte": "J", "area_risco": "ALTISSIMA", "processos": 116, "lideranca": 0}, {"cnpj": "CNPJ_000205", "sinistro_real": 1, "prob": 8.5, "decil": 8, "decisao": "RECUSADO", "regra": "RGR_K01_RISCO_LIDERANCA_AREA_CRITICA", "motivo": "K01_LIDERANCA_AREA_CRITICA", "justificativa": "Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.", "agravamento": 0.0, "gps": false, "premio": 0.0, "rec_extra": 0.0, "perda_evitada": 45000.0, "cnae": "G", "porte": "H", "area_risco": "ALTISSIMA", "processos": 16, "lideranca": 1}];
+
+    let filteredData = [...rawData];
+    let currentPage = 1;
+    const pageSize = 10;
+
+    // --- Data Explorer Table Logic ---
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      const start = (currentPage - 1) * pageSize;
+      const paginated = filteredData.slice(start, start + pageSize);
+
+      if (paginated.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding: 24px; color: var(--text-muted);">Nenhum registro encontrado com os filtros selecionados.</td></tr>';
+        document.getElementById('tableCount').innerText = '0 registros encontrados';
+        return;
+      }
+
+      let html = '';
+      paginated.forEach(r => {
+        let badgeClass = 'badge-cyan';
+        if (r.decisao === 'APROVADO') badgeClass = 'badge-emerald';
+        else if (r.decisao === 'ACEITO_COM_CONDICAO') badgeClass = 'badge-amber';
+        else if (r.decisao === 'RECUSADO') badgeClass = 'badge-rose';
+
+        let decilBadge = r.decil <= 1 ? 'badge-rose' : (r.decil <= 3 ? 'badge-amber' : 'badge-emerald');
+
+        html += `
+          <tr>
+            <td><strong class="mono" style="color: #ffffff;">${r.cnpj}</strong></td>
+            <td><span class="badge ${badgeClass}">${r.decisao}</span></td>
+            <td><span class="badge ${decilBadge}">D${r.decil}</span></td>
+            <td class="mono">${r.prob.toFixed(1)}%</td>
+            <td>${r.sinistro_real === 1 ? '<span style="color: var(--rose); font-weight:700;">Sim (1.0)</span>' : '<span style="color: var(--text-muted);">Não (0.0)</span>'}</td>
+            <td><span class="mono" style="font-size:0.75rem; color: var(--cyan);">${r.regra}</span></td>
+            <td>${r.gps ? '<span class="badge badge-rose">SIM (GPS)</span>' : '<span style="color: var(--text-subtle);">Não</span>'}</td>
+            <td>${r.agravamento > 0 ? `<span style="color: var(--amber); font-weight:700;">+${r.agravamento}%</span>` : '0%'}</td>
+            <td class="mono">R$ ${r.premio.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+            <td class="mono" style="${r.perda_evitada > 0 ? 'color: var(--rose); font-weight:700;' : 'color: var(--text-subtle);'}">R$ ${r.perda_evitada.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+            <td><span class="badge badge-purple">${r.cnae}</span></td>
+            <td>${r.area_risco}</td>
+            <td class="mono">${r.processos}</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+      document.getElementById('tableCount').innerText = `Exibindo ${start + 1}-${Math.min(start + pageSize, filteredData.length)} de ${filteredData.length} propostas filtradas (Amostra)`;
+      
+      document.getElementById('btnPrev').disabled = currentPage === 1;
+      document.getElementById('btnNext').disabled = start + pageSize >= filteredData.length;
+    }
+
+    function filterData() {
+      const query = document.getElementById('tableSearch').value.toLowerCase().trim();
+      const dec = document.getElementById('filterDecision').value;
+      const decil = document.getElementById('filterDecil').value;
+
+      filteredData = rawData.filter(r => {
+        const matchQ = !query || r.cnpj.toLowerCase().includes(query) || r.cnae.toLowerCase().includes(query) || r.regra.toLowerCase().includes(query) || r.motivo.toLowerCase().includes(query);
+        const matchDec = dec === 'ALL' || r.decisao === dec;
+        const matchDecil = decil === 'ALL' || r.decil.toString() === decil;
+        return matchQ && matchDec && matchDecil;
+      });
+
+      currentPage = 1;
+      renderTable();
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
+    }
+
+    function nextPage() {
+      if ((currentPage * pageSize) < filteredData.length) {
+        currentPage++;
+        renderTable();
+      }
+    }
+
+    // --- Interactive Policy Engine Simulator Logic ---
+    function runSimulation() {
+      const decil = parseInt(document.getElementById('inputDecil').value);
+      const processos = parseInt(document.getElementById('inputProcessos').value);
+      const area = document.getElementById('inputArea').value;
+      const lideranca = parseInt(document.getElementById('inputLideranca').value);
+      const cnae = document.getElementById('inputCNAE').value;
+      const ticketMedio = parseFloat(document.getElementById('inputPremio').value) || 10000;
+
+      // Update slider display labels
+      document.getElementById('valDecil').innerText = `Decil ${decil}`;
+      document.getElementById('valProcessos').innerText = `${processos} processos`;
+
+      let decisao = "APROVADO";
+      let regraId = "RGR_R04_DECIL4_10_APROVADO";
+      let reasonCode = "APROVADO_AUTOMATICO_BAIXO_RISCO";
+      let justificativa = "Aprovação Automática: Risco dentro do apetite da seguradora.";
+      let agravamentoPct = 0.0;
+      let exigeGPS = false;
+      let perdaEvitada = 0.0;
+
+      // KNOCKOUT 1: Liderança + Área Altíssima
+      if (lideranca === 1 && area === 'ALTISSIMA') {
+        decisao = "RECUSADO";
+        regraId = "RGR_K01_RISCO_LIDERANCA_AREA_CRITICA";
+        reasonCode = "K01_LIDERANCA_AREA_CRITICA";
+        justificativa = "Recusa Sumária: Risco de liderança detectado em área de concentração altíssima de sinistro.";
+        perdaEvitada = 45000.0;
+      }
+      // KNOCKOUT 2: Processos > 100
+      else if (processos > 100) {
+        decisao = "RECUSADO";
+        regraId = "RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS";
+        reasonCode = "K02_JUDICIAL_EXTREMO";
+        justificativa = "Recusa Sumária: Elevado passivo judicial (> 100 processos como réu).";
+        perdaEvitada = 45000.0;
+      }
+      // DECIL 1: Resgate Comercial
+      else if (decil === 1 && processos <= 10 && ['BAIXISSIMA', 'BAIXA', 'MEDIA'].includes(area)) {
+        decisao = "ACEITO_COM_CONDICAO";
+        regraId = "RGR_R01_DECIL1_RESGATE_COM_RASTREADOR";
+        reasonCode = "RECUPERACAO_COMERCIAL_D1";
+        justificativa = "Aceite Condicional Decil 1: Perfil de score alto risco, porém mitigado por baixo passivo judicial e geografia favorável.";
+        agravamentoPct = 15.0;
+        exigeGPS = true;
+      }
+      // DECIL 1: Recusa Padrão
+      else if (decil === 1) {
+        decisao = "RECUSADO";
+        regraId = "RGR_R02_DECIL1_RECUSA_PADRAO";
+        reasonCode = "DECIL1_ALTO_RISCO_SEM_MITIGACAO";
+        justificativa = "Recusa por Decil 1 de Risco sem critérios para resgate comercial.";
+        perdaEvitada = 45000.0;
+      }
+      // DECIL 2 e 3: Condicional Intermediário
+      else if (decil === 2 || decil === 3) {
+        decisao = "ACEITO_COM_CONDICAO";
+        regraId = "RGR_R03_DECIL2_3_CONDICIONAL";
+        reasonCode = "ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO";
+        justificativa = "Aceite Condicional Decil Intermediário (+7.5% de sobretaxa no prêmio).";
+        agravamentoPct = 7.5;
+        exigeGPS = false;
+      }
+      // DECIL 4 a 10: Aprovado Automático
+      else {
+        decisao = "APROVADO";
+        regraId = "RGR_R04_DECIL4_10_APROVADO";
+        reasonCode = "APROVADO_AUTOMATICO_BAIXO_RISCO";
+        justificativa = "Aprovação Automática: Risco perfeitamente enquadrado na política padrão de subscrição.";
+        agravamentoPct = 0.0;
+        exigeGPS = false;
+      }
+
+      // Financial calculations
+      let premioFinal = 0.0;
+      let receitaExtra = 0.0;
+
+      if (decisao !== "RECUSADO") {
+        receitaExtra = ticketMedio * (agravamentoPct / 100.0);
+        premioFinal = ticketMedio + receitaExtra;
+      }
+
+      // DOM Updates
+      const box = document.getElementById('resStatusBox');
+      box.className = 'result-status-box';
+      if (decisao === 'APROVADO') box.classList.add('res-approved');
+      else if (decisao === 'ACEITO_COM_CONDICAO') box.classList.add('res-condition');
+      else box.classList.add('res-rejected');
+
+      document.getElementById('resDecision').innerText = decisao.replace(/_/g, ' ');
+      document.getElementById('resRule').innerText = `Regra: ${regraId}`;
+      document.getElementById('resJustificativa').innerText = justificativa;
+
+      // Badges
+      const bGPS = document.getElementById('badgeGPS');
+      bGPS.className = exigeGPS ? 'badge badge-rose' : 'badge badge-cyan';
+      bGPS.innerText = exigeGPS ? '🚨 RASTREADOR GPS: OBRIGATÓRIO' : 'GPS: NÃO EXIGIDO';
+
+      const bAgrav = document.getElementById('badgeAgravamento');
+      bAgrav.className = agravamentoPct > 0 ? 'badge badge-amber' : 'badge badge-cyan';
+      bAgrav.innerText = `AGRAVAMENTO: +${agravamentoPct.toFixed(1)}%`;
+
+      document.getElementById('badgeReasonCode').innerText = `CODE: ${reasonCode}`;
+
+      // Numbers
+      document.getElementById('finBase').innerText = `R$ ${ticketMedio.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+      document.getElementById('finFinal').innerText = `R$ ${premioFinal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+      document.getElementById('finExtra').innerText = `R$ ${receitaExtra.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+      document.getElementById('finEvitada').innerText = `R$ ${perdaEvitada.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+    }
+
+    function applyPreset(type) {
+      if (type === 'padrao') {
+        document.getElementById('inputDecil').value = 7;
+        document.getElementById('inputProcessos').value = 1;
+        document.getElementById('inputArea').value = 'BAIXA';
+        document.getElementById('inputLideranca').value = 0;
+        document.getElementById('inputCNAE').value = 'G';
+      } else if (type === 'resgate') {
+        document.getElementById('inputDecil').value = 1;
+        document.getElementById('inputProcessos').value = 3;
+        document.getElementById('inputArea').value = 'BAIXISSIMA';
+        document.getElementById('inputLideranca').value = 0;
+        document.getElementById('inputCNAE').value = 'G';
+      } else if (type === 'recusa_d1') {
+        document.getElementById('inputDecil').value = 1;
+        document.getElementById('inputProcessos').value = 25;
+        document.getElementById('inputArea').value = 'ALTA';
+        document.getElementById('inputLideranca').value = 0;
+        document.getElementById('inputCNAE').value = 'S';
+      } else if (type === 'knockout_judicial') {
+        document.getElementById('inputDecil').value = 5;
+        document.getElementById('inputProcessos').value = 115;
+        document.getElementById('inputArea').value = 'MEDIA';
+        document.getElementById('inputLideranca').value = 0;
+        document.getElementById('inputCNAE').value = 'F';
+      } else if (type === 'knockout_lideranca') {
+        document.getElementById('inputDecil').value = 3;
+        document.getElementById('inputProcessos').value = 2;
+        document.getElementById('inputArea').value = 'ALTISSIMA';
+        document.getElementById('inputLideranca').value = 1;
+        document.getElementById('inputCNAE').value = 'C';
+      }
+      runSimulation();
+    }
+
+    // --- FAQ Toggle Accordion ---
+    function toggleFaq(elem) {
+      const item = elem.parentElement;
+      item.classList.toggle('active');
+    }
+
+    // --- XML Copy Clipboard ---
+    function copyXML() {
+      const text = document.getElementById('xmlText').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('XML da política copiado com sucesso para a área de transferência!');
+      }).catch(() => {
+        alert('Não foi possível copiar automaticamente. Selecione e copie manualmente.');
+      });
+    }
+
+    // Initial boot
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTable();
+      runSimulation();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DecisionRunnerNotation name="POLITICA_SUBSCRICAO_FROTAS_PJ" version="1.0">
+    <Metadata>
+        <Description>Politica de Subscricao e Credito Frotas PJ - Ecossistema Trillia RiskPack</Description>
+        <Author>Analista de Operacoes e Data Science</Author>
+        <Target>PROP_ALVO_CASCO</Target>
+    </Metadata>
+
+    <!-- INPUTS (Entradas da Proposta / Bureau com prefixo PROP_) -->
+    <Inputs>
+        <Input name="PROP_CNPJ" type="String" description="CNPJ da Empresa Proponente" />
+        <Input name="PROP_CONCENTRACAO_AREA_RISCO" type="String" description="Nivel de Concentracao Geografica de Risco" />
+        <Input name="PROP_QTD_PROCESSOS_JUDICIAIS_REQUERIDO" type="Numeric" description="Quantidade de processos judiciais como requerido" />
+        <Input name="PROP_RISCO_LIDERANCA" type="Numeric" description="Indicador de Risco Societario/Lideranca (0 ou 1)" />
+        <Input name="PROP_PORTE_FATURAMENTO" type="String" description="Porte presumido do faturamento" />
+        <Input name="PROP_SECAO_CNAE" type="String" description="Setor de atividade economica" />
+        <Input name="PROP_ALVO_CASCO" type="Numeric" description="Ground truth de sinistro real" />
+    </Inputs>
+
+    <!-- PARAMETERS (Parametros de execucao com prefixo VI_) -->
+    <Parameters>
+        <Parameter name="VI_TICKET_MEDIO_PREMIO" type="Numeric" value="10000.0" />
+        <Parameter name="VI_LIMITE_PROCESSOS_EXTREMO" type="Numeric" value="100.0" />
+        <Parameter name="VI_LIMITE_PROCESSOS_RESGATE" type="Numeric" value="10.0" />
+        <Parameter name="VI_AGRAVAMENTO_D1_PCT" type="Numeric" value="15.0" />
+        <Parameter name="VI_AGRAVAMENTO_D2_3_PCT" type="Numeric" value="7.5" />
+    </Parameters>
+
+    <!-- DROBJECTS: FLX (Fluxos), RGR (Regras), CALC (Calculos/Outputs) -->
+    <DRObjects>
+        <Flows>
+            <Flow id="FLX_PRINCIPAL" name="Fluxo Principal de Subscricao Frotas">
+                <SubFlow ref="FLX_KNOCKOUTS" priority="1" />
+                <SubFlow ref="FLX_ROTEAMENTO_SCORE" priority="2" />
+            </Flow>
+        </Flows>
+
+        <Rules>
+            <!-- REGRAS DE KNOCKOUT (RECUSA SUMÁRIA) -->
+            <Rule id="RGR_K01_RISCO_LIDERANCA_AREA_CRITICA" decision="RECUSADO" priority="1">
+                <Conditions combine="AND">
+                    <Condition field="PROP_RISCO_LIDERANCA" operator="EQ" value="1.0" />
+                    <Condition field="PROP_CONCENTRACAO_AREA_RISCO" operator="EQ" value="ALTISSIMA" />
+                </Conditions>
+                <Outcome>
+                    <ReasonCode>K01_LIDERANCA_AREA_CRITICA</ReasonCode>
+                    <Description>Recusa Sumaria: Risco de lideranca detectado em area de concentracao altissima de sinistro.</Description>
+                    <Action type="CALC_AGRAVAMENTO_PREMIO_PCT" value="0.0" />
+                    <Action type="CALC_EXIGE_RASTREADOR_GPS" value="FALSE" />
+                </Outcome>
+            </Rule>
+
+            <Rule id="RGR_K02_EXCESSO_PROCESSOS_JUDICIAIS" decision="RECUSADO" priority="2">
+                <Conditions combine="AND">
+                    <Condition field="PROP_QTD_PROCESSOS_JUDICIAIS_REQUERIDO" operator="GT" value="100.0" />
+                </Conditions>
+                <Outcome>
+                    <ReasonCode>K02_JUDICIAL_EXTREMO</ReasonCode>
+                    <Description>Recusa Sumaria: Elevado passivo judicial (> 100 processos como requerido).</Description>
+                    <Action type="CALC_AGRAVAMENTO_PREMIO_PCT" value="0.0" />
+                    <Action type="CALC_EXIGE_RASTREADOR_GPS" value="FALSE" />
+                </Outcome>
+            </Rule>
+
+            <!-- REGRAS DE ROTEAMENTO HÍBRIDO 3-WAY POR DECIL DE RISCO -->
+            <Rule id="RGR_R01_DECIL1_RESGATE_COM_RASTREADOR" decision="ACEITO_COM_CONDICAO" priority="10">
+                <Conditions combine="AND">
+                    <Condition field="CALC_DECIL_SCORE" operator="EQ" value="1" />
+                    <Condition field="PROP_QTD_PROCESSOS_JUDICIAIS_REQUERIDO" operator="LTE" value="10.0" />
+                    <Condition field="PROP_CONCENTRACAO_AREA_RISCO" operator="IN" value="BAIXISSIMA,BAIXA,MEDIA" />
+                </Conditions>
+                <Outcome>
+                    <ReasonCode>RECUPERACAO_COMERCIAL_D1</ReasonCode>
+                    <Description>Aceite Condicional Decil 1: Perfil de score alto risco, porem mitigado por baixo passivo judicial e geografia favoravel.</Description>
+                    <Action type="CALC_AGRAVAMENTO_PREMIO_PCT" value="15.0" />
+                    <Action type="CALC_EXIGE_RASTREADOR_GPS" value="TRUE" />
+                </Outcome>
+            </Rule>
+
+            <Rule id="RGR_R02_DECIL1_RECUSA_PADRAO" decision="RECUSADO" priority="11">
+                <Conditions combine="AND">
+                    <Condition field="CALC_DECIL_SCORE" operator="EQ" value="1" />
+                </Conditions>
+                <Outcome>
+                    <ReasonCode>DECIL1_ALTO_RISCO_SEM_MITIGACAO</ReasonCode>
+                    <Description>Recusa por Decil 1 de Risco sem criterios para resgate comercial.</Description>
+                    <Action type="CALC_AGRAVAMENTO_PREMIO_PCT" value="0.0" />
+                    <Action type="CALC_EXIGE_RASTREADOR_GPS" value="FALSE" />
+                </Outcome>
+            </Rule>
+
+            <Rule id="RGR_R03_DECIL2_3_CONDICIONAL" decision="ACEITO_COM_CONDICAO" priority="20">
+                <Conditions combine="AND">
+                    <Condition field="CALC_DECIL_SCORE" operator="IN" value="2,3" />
+                </Conditions>
+                <Outcome>
+                    <ReasonCode>ACEITE_CONDICIONAL_DECIL_INTERMEDIARIO</ReasonCode>
+                    <Description>Aceite Condicional Decil Intermediario (+7.5% premio).</Description>
+                    <Action type="CALC_AGRAVAMENTO_PREMIO_PCT" value="7.5" />
+                    <Action type="CALC_EXIGE_RASTREADOR_GPS" value="FALSE" />
+                </Outcome>
+            </Rule>
+
+            <Rule id="RGR_R04_DECIL4_10_APROVADO" decision="APROVADO" priority="30">
+                <Conditions combine="AND">
+                    <Condition field="CALC_DECIL_SCORE" operator="GTE" value="4" />
+                </Conditions>
+                <Outcome>
+                    <ReasonCode>APROVADO_AUTOMATICO_BAIXO_RISCO</ReasonCode>
+                    <Description>Aprovacao Automatica: Risco dentro do apetite da seguradora.</Description>
+                    <Action type="CALC_AGRAVAMENTO_PREMIO_PCT" value="0.0" />
+                    <Action type="CALC_EXIGE_RASTREADOR_GPS" value="FALSE" />
+                </Outcome>
+            </Rule>
+        </Rules>
+
+        <Calculations>
+            <Calculation name="CALC_PROB_SINISTRO" type="Numeric" description="Probabilidade de sinistro gerada pelo modelo ML" />
+            <Calculation name="CALC_DECIL_SCORE" type="Integer" description="Decil de risco de 1 a 10" />
+            <Calculation name="CALC_DECISAO_FINAL" type="String" description="Decisao final da proposta" />
+            <Calculation name="CALC_AGRAVAMENTO_PREMIO_PCT" type="Numeric" description="Porcentagem de sobretaxa aplicada" />
+            <Calculation name="CALC_EXIGE_RASTREADOR_GPS" type="Boolean" description="Indicador se rastreador GPS e obrigatorio" />
+            <Calculation name="CALC_PREMIO_FINAL_FATURADO" type="Numeric" description="Valor final do premio faturado em BRL" />
+            <Calculation name="CALC_RECEITA_ADICIONAL" type="Numeric" description="Receita extra decorrente do agravamento em BRL" />
+            <Calculation name="CALC_PERDA_EVITADA" type="Numeric" description="Sinistro evitado atraves da recusa sumaria em BRL" />
+        </Calculations>
+    </DRObjects>
+</DecisionRunnerNotation>
